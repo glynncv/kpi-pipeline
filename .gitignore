@@ -31,13 +31,17 @@ env/
 .virtualenv
 
 # IDE
-.vscode/
 .idea/
 *.swp
 *.swo
 *~
-.DS_Store
-Thumbs.db
+
+# VSCode - ignore workspace files but keep shared settings
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
 
 # Data files
 data/input/*.csv
