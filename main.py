@@ -253,9 +253,10 @@ def main():
             print("-"*70)
             for kr_id, kr_data in okr_result['key_results'].items():
                 print(f"\n{kr_id}: {kr_data['name']}")
-                print(f"  Score: {kr_data['score']}/100 - {kr_data['status']}")
-                print(f"  Current: {kr_data['current_value']}{kr_data['target_operator']}{kr_data['target_value']} (target)")
-                print(f"  Gap: {kr_data['gap_to_target']}")
+                print(f"  Score:    {kr_data['score']}%")
+                print(f"  Status:   {kr_data['status']}")
+                print(f"  Current:  {kr_data['current_value']} {kr_data['target_operator']} {kr_data['target_value']} (target)")
+                print(f"  Gap:      {kr_data['gap_to_target']}")
                 print(f"  Deadline: {kr_data['deadline']} ({kr_data['days_remaining']} days)")
             
             # Display Action Triggers
