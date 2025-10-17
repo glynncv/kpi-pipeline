@@ -99,9 +99,9 @@ def calculate_sm002_backlog(df: pd.DataFrame, config: Dict[str, Any]) -> Dict[st
     }
 
 
-def calculate_kr5_request_aging(df: pd.DataFrame, config: Dict[str, Any]) -> Dict[str, Any]:
+def calculate_sm003_request_aging(df: pd.DataFrame, config: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Calculate KR5: Service Request Aging.
+    Calculate SM003/KR5: Service Request Aging.
     
     Args:
         df: Request DataFrame with calculated flags
@@ -132,7 +132,7 @@ def calculate_kr5_request_aging(df: pd.DataFrame, config: Dict[str, Any]) -> Dic
         status = "Critical"
     
     return {
-        'KPI_Code': 'KR5',
+        'KPI_Code': 'SM003/KR5',
         'KPI_Name': kpi_config['name'],
         'Total_Requests': int(total_requests),
         'Aged_Count': int(aged_count),
@@ -216,9 +216,9 @@ def _get_kpi_weights(config: Dict[str, Any]) -> Dict[str, float]:
         # Use adjusted weights when SM003 is disabled
         adjusted = scorecard.get('sm003_disabled_weights', {})
         return {
-            'SM001': adjusted.get('weight_sm001', 30),
+            'SM001': adjusted.get('weight_sm001', 25),
             'SM002': adjusted.get('weight_sm002', 50),
-            'SM004': adjusted.get('weight_sm004', 20),
+            'SM004': adjusted.get('weight_sm004', 25),
         }
 
 
@@ -248,6 +248,8 @@ def calculate_overall_score(kpi_results: Dict[str, Dict], config: Dict[str, Any]
             adherence = kpi_results['SM001']['Adherence_Rate']
         elif kpi_code == 'SM002' and 'SM002/KR4' in kpi_results:
             adherence = kpi_results['SM002/KR4']['Adherence_Rate']
+        elif kpi_code == 'SM003' and 'SM003/KR5' in kpi_results:
+            adherence = kpi_results['SM003/KR5']['Adherence_Rate']
         elif kpi_code == 'SM004' and 'SM004/KR6' in kpi_results:
             adherence = kpi_results['SM004/KR6']['Adherence_Rate']
         else:
@@ -286,7 +288,7 @@ def calculate_all(incidents: pd.DataFrame, requests: pd.DataFrame, config: Dict[
     
     Args:
         incidents: Incident DataFrame with calculated flags
-        requests: Request DataFrame with calculated flags
+        requests: Request DataFrame with calculated flags (None if SM003 disabled)
         config: Configuration dictionary
         
     Returns:
@@ -302,9 +304,9 @@ def calculate_all(incidents: pd.DataFrame, requests: pd.DataFrame, config: Dict[
     if config['kpis']['SM002']['enabled']:
         results['SM002/KR4'] = calculate_sm002_backlog(incidents, config)
     
-    # KR5: Request Aging (if enabled and data available)
+    # SM003/KR5: Request Aging (if enabled and data available)
     if config['kpis']['SM003']['enabled'] and requests is not None:
-        results['KR5'] = calculate_kr5_request_aging(requests, config)
+        results['SM003/KR5'] = calculate_sm003_request_aging(requests, config)
     
     # SM004/KR6: First Call Resolution
     if config['kpis']['SM004']['enabled']:

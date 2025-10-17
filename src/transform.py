@@ -66,7 +66,7 @@ def add_request_flags(df: pd.DataFrame, config: Dict[str, Any]) -> pd.DataFrame:
     Add calculated boolean flags to request DataFrame.
     
     Flags added:
-        - Is_Aged: Request aged beyond threshold
+        - Is_Aged: Request aged beyond threshold (>30 days by default)
         - Is_Closed: Request is closed
         
     Args:
@@ -78,11 +78,12 @@ def add_request_flags(df: pd.DataFrame, config: Dict[str, Any]) -> pd.DataFrame:
     """
     df = df.copy()
     
-    # Get threshold from config
-    aging_threshold = config['thresholds']['aging'].get('request_aging_days', 30)
+    # Get threshold from config - check multiple possible locations
+    aging_threshold = config['kpis']['SM003']['targets'].get('aging_threshold_days', 
+                      config['thresholds']['aging'].get('request_aging_days', 30))
     
     # Flag: Aged Request
-    # Business rule: Open for more than threshold days
+    # Business rule: Open for more than threshold days (30 days by default)
     df['Is_Aged'] = df['Days_Open'] > aging_threshold
     
     # Flag: Closed
@@ -143,7 +144,7 @@ if __name__ == "__main__":
         print(f"First Call Resolution: {incidents['Is_First_Call_Resolution'].sum()} ({incidents['Is_First_Call_Resolution'].sum()/len(incidents)*100:.1f}%)")
         
         # Load and transform requests (if enabled)
-        if config_loader.is_kpi_enabled(config, 'SM003'):
+        if config['kpis']['SM003']['enabled']:
             requests = load_data.load_requests(
                 'data/PYTHON EMEA SCT last 90 days_redacted_clean.csv',
                 config
@@ -152,7 +153,11 @@ if __name__ == "__main__":
             
             print("\n=== REQUEST TRANSFORM RESULTS ===")
             print(f"Total requests: {len(requests)}")
-            print(f"Aged requests: {requests['Is_Aged'].sum()} ({requests['Is_Aged'].sum()/len(requests)*100:.1f}%)")
+            print(f"Aged requests (>30 days): {requests['Is_Aged'].sum()} ({requests['Is_Aged'].sum()/len(requests)*100:.1f}%)")
+            print(f"Closed requests: {requests['Is_Closed'].sum()} ({requests['Is_Closed'].sum()/len(requests)*100:.1f}%)")
+        else:
+            print("\n=== REQUEST TRANSFORM SKIPPED ===")
+            print("SM003 (Request Aging) is disabled in configuration")
         
     except Exception as e:
         print(f"✗ Error: {e}")

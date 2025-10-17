@@ -12,8 +12,7 @@ column_mappings:
   opened_at: "opened_at"
   resolved_at: "u_resolved"
   reassignment_count: "reassignment_count"
-  country: "location_country"
-  contact_type: "contact_type"
+  country: "location"
 
 processing:
   priority_extraction:
@@ -47,10 +46,6 @@ global_status_rules:
     weight_sm002: 40
     weight_sm003: 25
     weight_sm004: 10
-    sm003_disabled_weights:
-      weight_sm001: 25
-      weight_sm002: 50
-      weight_sm004: 25
   performance_bands:
     excellent: 90
     good: 80
@@ -94,7 +89,7 @@ kpis:
     
   SM003:
     name: "Service Request Aging"
-    enabled: false
+    enabled: true
     description: "Service Request Aging Analysis"
     business_impact: "Medium"
     calculation:
@@ -102,6 +97,7 @@ kpis:
     targets:
       aged_max: 0
       adherence_min: 90.0
+      aging_threshold_days: 30
     required_fields:
       - "number"
       - "opened_at"
@@ -121,10 +117,6 @@ kpis:
     required_fields:
       - "number"
       - "reassignment_count"
-    exclusions:
-      contact_types:
-        - "Self Heal"
-        - "Event"
     
   GEOGRAPHIC:
     name: "Geographic Analysis"
