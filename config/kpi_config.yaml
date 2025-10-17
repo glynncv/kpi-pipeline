@@ -1,0 +1,143 @@
+# KPI Configuration File - Final Clean Version
+metadata:
+  version: "1.0"
+  description: "KPI Processing Configuration"
+  organization: "IT Service Management"
+  schema_version: "2.0"
+  
+column_mappings:
+  number: "number"
+  priority: "priority"
+  state: "incident_state"
+  opened_at: "opened_at"
+  resolved_at: "u_resolved"
+  reassignment_count: "reassignment_count"
+  country: "location_country"
+  contact_type: "contact_type"
+
+processing:
+  priority_extraction:
+    regex_pattern: "\\d+"
+    fallback_value: 99
+  date_parsing:
+    auto_detect: true
+    formats: 
+      - "%Y-%m-%d %H:%M:%S"
+  signature_fields:
+    - "number"
+    - "priority"
+    - "state"
+    - "reassignment_count"
+    - "resolved_at"
+
+thresholds:
+  priority:
+    major_incident_levels: [1, 2]
+  aging:
+    backlog_days: 10
+    request_aging_days: 30
+  performance_bands:
+    excellent: 90
+    good: 80
+    needs_improvement: 60
+
+global_status_rules:
+  scorecard_scoring:
+    weight_sm001: 25
+    weight_sm002: 40
+    weight_sm003: 25
+    weight_sm004: 10
+    sm003_disabled_weights:
+      weight_sm001: 25
+      weight_sm002: 50
+      weight_sm004: 25
+  performance_bands:
+    excellent: 90
+    good: 80
+    needs_improvement: 60
+    
+kpis:
+  SM001:
+    name: "Major Incidents"
+    enabled: true
+    description: "Priority 1 & 2 Incident Processing"
+    business_impact: "High"
+    escalation_required: true
+    calculation:
+      method: "priority_count"
+    targets:
+      p1_max: 0
+      p2_max: 5
+      total_major_max: 5
+    required_fields:
+      - "number"
+      - "priority"
+    
+  SM002:
+    name: "ServiceNow Backlog"  
+    enabled: true
+    description: "Backlog Analysis"
+    business_impact: "High"
+    calculation:
+      method: "servicenow_backlog"
+    targets:
+      backlog_max: 0
+      adherence_min: 90.0
+      aging_threshold_days: 10
+    required_fields:
+      - "number"
+      - "opened_at"
+      - "resolved_at"
+    backlog_logic:
+      threshold_days: 10
+      include_unresolved: true
+    
+  SM003:
+    name: "Service Request Aging"
+    enabled: false
+    description: "Service Request Aging Analysis"
+    business_impact: "Medium"
+    calculation:
+      method: "request_aging"
+    targets:
+      aged_max: 0
+      adherence_min: 90.0
+    required_fields:
+      - "number"
+      - "opened_at"
+    data_requirements:
+      fallback_behavior: "disable"
+    
+  SM004:
+    name: "First Time Fix Rate"
+    enabled: true
+    description: "First Time Fix Rate Analysis"
+    business_impact: "High"
+    calculation:
+      method: "zero_reassignments"
+    targets:
+      ftf_rate_min: 80.0
+      ftf_count_min: null
+    required_fields:
+      - "number"
+      - "reassignment_count"
+    exclusions:
+      contact_types:
+        - "Self Heal"
+        - "Event"
+    
+  GEOGRAPHIC:
+    name: "Geographic Analysis"
+    enabled: true
+    description: "Geographic Distribution Analysis"
+    business_impact: "Low"
+    calculation:
+      method: "country_distribution"
+      top_countries_limit: 5
+      include_priority_breakdown: true
+    analysis_dimensions:
+      - "country_distribution"
+      - "priority_by_country"
+    required_fields:
+      - "country"
+      - "priority"
