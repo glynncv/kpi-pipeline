@@ -30,6 +30,47 @@ from src.okr_calculator import OKRCalculator
 from src.export_excel import export_to_excel
 
 
+def format_table(headers, rows, col_widths=None):
+    """
+    Format data as an ASCII table.
+    
+    Args:
+        headers: List of column headers
+        rows: List of row data (each row is a list)
+        col_widths: Optional list of column widths
+    
+    Returns:
+        Formatted table string
+    """
+    if not col_widths:
+        # Auto-calculate widths based on content
+        col_widths = [len(str(h)) for h in headers]
+        for row in rows:
+            for i, cell in enumerate(row):
+                col_widths[i] = max(col_widths[i], len(str(cell)))
+    
+    # Add padding
+    col_widths = [w + 2 for w in col_widths]
+    
+    # Create separator line
+    sep = '├' + '┼'.join('─' * w for w in col_widths) + '┤'
+    top = '┌' + '┬'.join('─' * w for w in col_widths) + '┐'
+    bottom = '└' + '┴'.join('─' * w for w in col_widths) + '┘'
+    
+    # Format header
+    header_line = '│' + '│'.join(f' {str(h):<{w-1}}' for h, w in zip(headers, col_widths)) + '│'
+    
+    # Format rows
+    row_lines = []
+    for row in rows:
+        row_line = '│' + '│'.join(f' {str(cell):<{w-1}}' for cell, w in zip(row, col_widths)) + '│'
+        row_lines.append(row_line)
+    
+    # Combine all parts
+    table = [top, header_line, sep] + row_lines + [bottom]
+    return '\n'.join(table)
+
+
 def main():
     """Execute the KPI pipeline."""
     print("="*70)
@@ -104,7 +145,41 @@ def main():
         # Step 7: Display Results
         print("\n[7/7] Results:")
         print("\n" + "="*70)
-        print("KPI RESULTS")
+        print("KPI RESULTS - SUMMARY")
+        print("="*70)
+        
+        # Build KPI summary table
+        kpi_table_rows = []
+        for kpi_code, kpi_data in kpi_results.items():
+            if kpi_code == 'OVERALL':
+                continue
+            
+            # Get summary details
+            if 'P1_Count' in kpi_data:
+                details = f"{kpi_data['P1_Count']} P1, {kpi_data['P2_Count']} P2"
+            elif 'Backlog_Count' in kpi_data:
+                details = f"{kpi_data['Backlog_Percentage']}% backlog"
+            elif 'Aged_Count' in kpi_data:
+                details = f"{kpi_data['Aged_Percentage']}% aged"
+            elif 'FCR_Count' in kpi_data:
+                details = f"{kpi_data['FCR_Percentage']}% FCR"
+            else:
+                details = "-"
+            
+            kpi_table_rows.append([
+                kpi_code,
+                kpi_data['Status'],
+                f"{kpi_data['Adherence_Rate']}%",
+                details
+            ])
+        
+        print()
+        print(format_table(['KPI', 'Status', 'Adherence', 'Key Metric'], kpi_table_rows))
+        print()
+        
+        # Detailed KPI Results
+        print("\n" + "="*70)
+        print("KPI RESULTS - DETAILED")
         print("="*70)
         
         for kpi_code, kpi_data in kpi_results.items():
@@ -148,7 +223,34 @@ def main():
             print(f"Status: {okr_result['overall_status']}")
             print(f"Weights: KR4={okr_result['weights']['KR4']}%, KR5={okr_result['weights']['KR5']}%, KR6={okr_result['weights']['KR6']}%")
             
-            print("\nKey Results:")
+            # Build OKR Key Results table
+            okr_table_rows = []
+            for kr_id, kr_data in okr_result['key_results'].items():
+                # Truncate name if too long
+                name = kr_data['name']
+                if len(name) > 25:
+                    name = name[:22] + "..."
+                
+                okr_table_rows.append([
+                    kr_id,
+                    name,
+                    str(kr_data['current_value']),
+                    f"{kr_data['target_operator']}{kr_data['target_value']}",
+                    f"{kr_data['score']}/100",
+                    kr_data['status'],
+                    f"{kr_data['gap_to_target']}"
+                ])
+            
+            print("\nKey Results Summary:")
+            print(format_table(
+                ['KR', 'Name', 'Current', 'Target', 'Score', 'Status', 'Gap'],
+                okr_table_rows
+            ))
+            
+            # Detailed KR information
+            print("\n" + "-"*70)
+            print("Key Results Details:")
+            print("-"*70)
             for kr_id, kr_data in okr_result['key_results'].items():
                 print(f"\n{kr_id}: {kr_data['name']}")
                 print(f"  Score: {kr_data['score']}/100 - {kr_data['status']}")
