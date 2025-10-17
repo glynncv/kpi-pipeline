@@ -189,6 +189,39 @@ def calculate_sm004_fcr(df: pd.DataFrame, config: Dict[str, Any]) -> Dict[str, A
     }
 
 
+def _get_kpi_weights(config: Dict[str, Any]) -> Dict[str, float]:
+    """
+    Get KPI weights, adjusted for disabled KPIs.
+    
+    Args:
+        config: Configuration dictionary
+        
+    Returns:
+        Dictionary of KPI weights
+    """
+    scorecard = config['global_status_rules']['scorecard_scoring']
+    
+    # Check if SM003 is enabled
+    sm003_enabled = config['kpis']['SM003']['enabled']
+    
+    if sm003_enabled:
+        # Use standard weights
+        return {
+            'SM001': scorecard['weight_sm001'],
+            'SM002': scorecard['weight_sm002'],
+            'SM003': scorecard['weight_sm003'],
+            'SM004': scorecard['weight_sm004'],
+        }
+    else:
+        # Use adjusted weights when SM003 is disabled
+        adjusted = scorecard.get('sm003_disabled_weights', {})
+        return {
+            'SM001': adjusted.get('weight_sm001', 30),
+            'SM002': adjusted.get('weight_sm002', 50),
+            'SM004': adjusted.get('weight_sm004', 20),
+        }
+
+
 def calculate_overall_score(kpi_results: Dict[str, Dict], config: Dict[str, Any]) -> Dict[str, Any]:
     """
     Calculate overall weighted score across all KPIs.
@@ -200,10 +233,8 @@ def calculate_overall_score(kpi_results: Dict[str, Dict], config: Dict[str, Any]
     Returns:
         Dictionary with overall score and status
     """
-    import config_loader
-    
-    # Get weights (adjusted for disabled KPIs)
-    weights = config_loader.get_kpi_weights(config)
+    # Get weights from configuration
+    weights = _get_kpi_weights(config)
     
     # Calculate weighted score
     total_score = 0.0

@@ -13,7 +13,14 @@ Usage:
 """
 
 import sys
+import os
 from datetime import datetime
+
+# Fix Windows console encoding for Unicode characters
+if sys.platform == 'win32':
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 from src import config_loader
 from src import load_data
