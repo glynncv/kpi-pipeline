@@ -28,6 +28,7 @@ from src import transform
 from src import calculate_kpis
 from src.okr_calculator import OKRCalculator
 from src.export_excel import export_to_excel
+from src.export_markdown import export_to_markdown
 
 
 def format_table(headers, rows, col_widths=None):
@@ -133,14 +134,25 @@ def main():
             okr_result = None
             okr_triggers = None
         
-        # Step 6: Export to Excel
-        print("\n[6/7] Exporting to Excel...")
+        # Step 6: Export Reports
+        print("\n[6/7] Exporting reports...")
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        
+        # Export to Excel
         try:
             excel_file = export_to_excel(kpi_results, okr_result, 
-                                        filename=f"kpi_okr_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx")
+                                        filename=f"kpi_okr_report_{timestamp}.xlsx")
             print(f"✓ Excel report saved: {excel_file}")
         except Exception as e:
             print(f"⚠ Excel export error: {e}")
+        
+        # Export to Markdown
+        try:
+            markdown_file = export_to_markdown(kpi_results, okr_result,
+                                              filename=f"kpi_okr_report_{timestamp}.md")
+            print(f"✓ Markdown report saved: {markdown_file}")
+        except Exception as e:
+            print(f"⚠ Markdown export error: {e}")
         
         # Step 7: Display Results
         print("\n[7/7] Results:")
