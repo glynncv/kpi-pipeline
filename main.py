@@ -26,6 +26,8 @@ from src import config_loader
 from src import load_data
 from src import transform
 from src import calculate_kpis
+from src.okr_calculator import OKRCalculator
+from src.export_excel import export_to_excel
 
 
 def main():
@@ -38,12 +40,12 @@ def main():
     
     try:
         # Step 1: Load Configuration
-        print("[1/5] Loading configuration...")
+        print("[1/7] Loading configuration...")
         config = config_loader.load_config()
         print(f"✓ Configuration loaded: {config['metadata']['organization']}")
         
         # Step 2: Load Data
-        print("\n[2/5] Loading data files...")
+        print("\n[2/7] Loading data files...")
         incidents = load_data.load_incidents(
             'data/input/PYTHON EMEA IM (last 90 days)_redacted_clean.csv',
             config
@@ -61,7 +63,7 @@ def main():
             print("ℹ Request aging (SM003) disabled - skipping request data")
         
         # Step 3: Transform Data
-        print("\n[3/5] Transforming data (adding calculated fields)...")
+        print("\n[3/7] Transforming data (adding calculated fields)...")
         incidents = transform.add_incident_flags(incidents, config)
         print(f"✓ Added incident flags")
         
@@ -70,12 +72,37 @@ def main():
             print(f"✓ Added request flags")
         
         # Step 4: Calculate KPIs
-        print("\n[4/5] Calculating KPIs...")
+        print("\n[4/7] Calculating KPIs...")
         kpi_results = calculate_kpis.calculate_all(incidents, requests, config)
         print(f"✓ Calculated {len(kpi_results)-1} KPIs + overall score")
         
-        # Step 5: Display Results
-        print("\n[5/5] Results:")
+        # Step 5: Calculate OKR
+        print("\n[5/7] Calculating OKR R002...")
+        try:
+            okr_calc = OKRCalculator('config/okr_config.yaml', kpi_results)
+            okr_result = okr_calc.calculate_overall_okr()
+            okr_triggers = okr_calc.get_action_triggers()
+            print(f"✓ OKR R002 Score: {okr_result['overall_score']}/100 - {okr_result['overall_status']}")
+        except FileNotFoundError:
+            print("⚠ OKR config not found - skipping OKR calculation")
+            okr_result = None
+            okr_triggers = None
+        except Exception as e:
+            print(f"⚠ OKR calculation error: {e}")
+            okr_result = None
+            okr_triggers = None
+        
+        # Step 6: Export to Excel
+        print("\n[6/7] Exporting to Excel...")
+        try:
+            excel_file = export_to_excel(kpi_results, okr_result, 
+                                        filename=f"kpi_okr_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx")
+            print(f"✓ Excel report saved: {excel_file}")
+        except Exception as e:
+            print(f"⚠ Excel export error: {e}")
+        
+        # Step 7: Display Results
+        print("\n[7/7] Results:")
         print("\n" + "="*70)
         print("KPI RESULTS")
         print("="*70)
@@ -111,6 +138,41 @@ def main():
                     print(f"  Total Resolved: {kpi_data['Total_Resolved']}")
                     print(f"  FCR: {kpi_data['FCR_Count']} ({kpi_data['FCR_Percentage']}%)")
                     print(f"  Target: ≥{kpi_data['Target_Rate']}%")
+        
+        # Display OKR Results
+        if okr_result:
+            print("\n" + "="*70)
+            print("OKR R002: SERVICE DELIVERY EXCELLENCE")
+            print("="*70)
+            print(f"\nOverall OKR Score: {okr_result['overall_score']}/100")
+            print(f"Status: {okr_result['overall_status']}")
+            print(f"Weights: KR4={okr_result['weights']['KR4']}%, KR5={okr_result['weights']['KR5']}%, KR6={okr_result['weights']['KR6']}%")
+            
+            print("\nKey Results:")
+            for kr_id, kr_data in okr_result['key_results'].items():
+                print(f"\n{kr_id}: {kr_data['name']}")
+                print(f"  Score: {kr_data['score']}/100 - {kr_data['status']}")
+                print(f"  Current: {kr_data['current_value']}{kr_data['target_operator']}{kr_data['target_value']} (target)")
+                print(f"  Gap: {kr_data['gap_to_target']}")
+                print(f"  Deadline: {kr_data['deadline']} ({kr_data['days_remaining']} days)")
+            
+            # Display Action Triggers
+            if okr_triggers and (okr_triggers['critical'] or okr_triggers['warning']):
+                print("\n" + "="*70)
+                print("ACTION ITEMS")
+                print("="*70)
+                
+                if okr_triggers['critical']:
+                    print("\n🔴 CRITICAL ACTIONS:")
+                    for trigger in okr_triggers['critical']:
+                        print(f"  {trigger['kr_id']}: {trigger['action']}")
+                        print(f"    → Escalate to: {trigger['escalation']}")
+                
+                if okr_triggers['warning']:
+                    print("\n🟡 WARNING ACTIONS:")
+                    for trigger in okr_triggers['warning']:
+                        print(f"  {trigger['kr_id']}: {trigger['action']}")
+                        print(f"    → Escalate to: {trigger['escalation']}")
         
         print("\n" + "="*70)
         print(f"✓ Pipeline completed successfully")

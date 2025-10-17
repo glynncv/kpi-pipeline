@@ -1,0 +1,344 @@
+# okr_config.yaml - OKR R002 Configuration
+# Purpose: Business-level OKR definitions and scoring
+
+metadata:
+  version: "1.0"
+  okr_id: "R002"
+  okr_name: "Service Delivery Excellence"
+  owner: "All SDMs"
+  year: 2025
+  last_updated: "2025-10-17"
+  schema_version: "1.0"
+
+# ==========================================
+# OKR OVERVIEW
+# ==========================================
+objective:
+  description: "Establish a proactive service delivery model that improves operational visibility"
+  alignment:
+    - "Global Strategic IT Objectives"
+    - "BRM Collaboration"
+    - "Site-Level Service Excellence"
+
+# ==========================================
+# KEY RESULTS - Links to KPI calculations
+# ==========================================
+key_results:
+  KR4:
+    name: "Incident Backlog Management"
+    description: "Ensure fewer than 10% of incidents remain open for more than 10 days"
+    
+    # Link to KPI calculation
+    calculation_source:
+      kpi_id: "SM002"                    # Uses SM002 calculation
+      kpi_config_file: "kpi_config.yaml"
+      note: "KR4 and SM002 are the same metric"
+    
+    # Business targets & deadlines
+    target:
+      value: 10.0
+      unit: "percent"
+      operator: "<="
+      description: "≤10% of incidents aged >10 days"
+    
+    deadline:
+      date: "2025-09-30"
+      criticality: "Critical"
+      days_remaining: 1                  # Auto-calculate in code
+    
+    # OKR scoring (0-100 scale)
+    scoring:
+      method: "inverse_percentage"       # Lower is better
+      formula: "100 - (current_value / target_value * 100)"
+      # If current=25%, target=10%: Score = 100 - (25/10*100) = -150 → clamp to 0
+      clamp_min: 0
+      clamp_max: 100
+      
+      performance_bands:
+        excellent: 
+          min_score: 90
+          condition: "≤5% backlog"
+        good:
+          min_score: 70
+          condition: "5-10% backlog"
+        at_risk:
+          min_score: 40
+          condition: "10-15% backlog"
+        critical:
+          min_score: 0
+          condition: ">15% backlog"
+    
+    # Current status (populated at runtime)
+    current_performance:
+      backlog_percentage: null           # Filled by pipeline
+      status: null                       # Filled by pipeline
+      gap_to_target: null               # Filled by pipeline
+    
+    owner: "All SDMs"
+    business_impact: "High"
+
+  KR5:
+    name: "Request Backlog Management"
+    description: "Ensure fewer than 10% of service requests aged beyond 30 days"
+    
+    calculation_source:
+      kpi_id: "SM003"                    # Uses SM003 calculation
+      kpi_config_file: "kpi_config.yaml"
+      note: "Request backlog uses 30-day threshold"
+    
+    target:
+      value: 10.0
+      unit: "percent"
+      operator: "<="
+      description: "≤10% of requests aged >30 days"
+    
+    deadline:
+      date: "2025-12-31"
+      criticality: "High"
+    
+    scoring:
+      method: "inverse_percentage"
+      formula: "100 - (current_value / target_value * 100)"
+      clamp_min: 0
+      clamp_max: 100
+      
+      performance_bands:
+        excellent: 
+          min_score: 90
+          condition: "≤5% backlog"
+        good:
+          min_score: 70
+          condition: "5-10% backlog"
+        at_risk:
+          min_score: 40
+          condition: "10-15% backlog"
+        critical:
+          min_score: 0
+          condition: ">15% backlog"
+    
+    owner: "Service Request Team"
+    business_impact: "Medium"
+
+  KR6:
+    name: "First Time Fix Rate"
+    description: "Achieve ≥80% first-time fix rate"
+    
+    calculation_source:
+      kpi_id: "SM004"
+      kpi_config_file: "kpi_config.yaml"
+      note: "KR6 and SM004 are the same metric"
+    
+    target:
+      value: 80.0
+      unit: "percent"
+      operator: ">="
+      description: "≥80% first-time fix"
+    
+    deadline:
+      date: "2025-12-31"
+      criticality: "High"
+    
+    scoring:
+      method: "direct_percentage"        # Higher is better
+      formula: "(current_value / target_value) * 100"
+      # If current=31.8%, target=80%: Score = (31.8/80)*100 = 39.75
+      clamp_min: 0
+      clamp_max: 100
+      
+      performance_bands:
+        excellent:
+          min_score: 90
+          condition: "≥72% FTF (90% of target)"
+        good:
+          min_score: 70
+          condition: "64-72% FTF"
+        at_risk:
+          min_score: 40
+          condition: "48-64% FTF"
+        critical:
+          min_score: 0
+          condition: "<48% FTF"
+    
+    owner: "Service Desk Management"
+    business_impact: "High"
+
+# ==========================================
+# OKR WEIGHTING & SCORING
+# ==========================================
+weighting:
+  description: "Weighted scoring across three Key Results"
+  total_weight: 100
+  
+  weights:
+    KR4: 40    # Highest priority - Sept deadline
+    KR5: 30    # Added in v2.0
+    KR6: 30    # Quality indicator
+  
+  overall_score:
+    formula: "(KR4_score * 0.40) + (KR5_score * 0.30) + (KR6_score * 0.30)"
+    rounding: 1
+    
+    performance_bands:
+      excellent:
+        min_score: 90
+        max_score: 100
+        status: "🟢 EXCELLENT"
+        description: "All Key Results on track or exceeded"
+      
+      on_track:
+        min_score: 70
+        max_score: 89
+        status: "🟡 ON TRACK"
+        description: "Most Key Results progressing well"
+      
+      at_risk:
+        min_score: 50
+        max_score: 69
+        status: "🟠 AT RISK"
+        description: "Multiple Key Results need attention"
+      
+      critical:
+        min_score: 0
+        max_score: 49
+        status: "🔴 CRITICAL"
+        description: "Significant intervention required"
+
+# ==========================================
+# GEOGRAPHIC ANALYSIS
+# ==========================================
+geographic_analysis:
+  enabled: true
+  
+  dimensions:
+    - "country"
+    - "location"
+  
+  metrics_to_analyze:
+    - kr_id: "KR4"
+      group_by: ["country", "location"]
+    - kr_id: "KR5"
+      group_by: ["country", "location"]
+    - kr_id: "KR6"
+      group_by: ["country", "location"]
+  
+  volume_tiers:
+    tier_1:
+      name: "High Volume"
+      threshold: 500
+      description: "≥500 incidents/requests per quarter"
+    tier_2:
+      name: "Medium Volume"
+      threshold: 200
+      description: "200-499 incidents/requests per quarter"
+    tier_3:
+      name: "Standard Volume"
+      threshold: 100
+      description: "100-199 incidents/requests per quarter"
+    tier_4:
+      name: "Low Volume"
+      threshold: 0
+      description: "<100 incidents/requests per quarter"
+
+# ==========================================
+# REPORTING CONFIGURATION
+# ==========================================
+reporting:
+  frequencies:
+    daily:
+      enabled: true
+      scope: ["KR4"]                     # Only KR4 until Sept 30
+      recipients: ["SDM Team", "IT Leadership"]
+    
+    weekly:
+      enabled: true
+      scope: ["KR4", "KR5", "KR6"]
+      recipients: ["SDM Team", "Service Desk Management"]
+    
+    monthly:
+      enabled: true
+      scope: ["Geographic Analysis"]
+      recipients: ["SDM Team", "BRMs"]
+  
+  excel_output:
+    sheets:
+      okr_summary:
+        enabled: true
+        name: "OKR R002 Summary"
+        include:
+          - "Overall OKR Score"
+          - "Individual KR Scores"
+          - "Status & Targets"
+          - "Days Remaining"
+      
+      kr_details:
+        enabled: true
+        name: "Key Results Detail"
+        include:
+          - "KR4, KR5, KR6 detailed metrics"
+          - "Current vs Target"
+          - "Gap Analysis"
+      
+      geographic_okr:
+        enabled: true
+        name: "OKR by Geography"
+        include:
+          - "Country-level OKR scores"
+          - "Location-level OKR scores"
+          - "Volume tiers"
+      
+      action_plan:
+        enabled: true
+        name: "Action Items"
+        include:
+          - "KRs missing target"
+          - "Recommended actions"
+          - "Priority rankings"
+
+# ==========================================
+# ACTION TRIGGERS
+# ==========================================
+action_triggers:
+  KR4:
+    critical:
+      condition: "deadline < 7 days AND backlog > 15%"
+      action: "Emergency backlog clearance mode"
+      escalation: "IT Leadership"
+    
+    warning:
+      condition: "backlog > 10%"
+      action: "Daily monitoring and reporting"
+      escalation: "SDM Team"
+  
+  KR5:
+    warning:
+      condition: "backlog > 10%"
+      action: "Weekly backlog review meeting"
+      escalation: "Service Request Team"
+  
+  KR6:
+    critical:
+      condition: "ftf_rate < 50%"
+      action: "Comprehensive training program required"
+      escalation: "Service Desk Management"
+    
+    warning:
+      condition: "ftf_rate < 70%"
+      action: "Review assignment rules and knowledge base"
+      escalation: "Team Leads"
+
+# ==========================================
+# VALIDATION
+# ==========================================
+validation:
+  required_kpis:
+    - "SM002"    # For KR4
+    - "SM003"    # For KR5
+    - "SM004"    # For KR6
+  
+  weight_validation:
+    sum_must_equal: 100
+    all_weights_positive: true
+  
+  target_validation:
+    all_targets_numeric: true
+    all_deadlines_valid: true
