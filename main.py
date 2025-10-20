@@ -7,6 +7,7 @@ This script runs the complete KPI pipeline:
 3. Transforms data (adds calculated fields)
 4. Calculates KPIs
 5. Displays results
+6. Generates Excel report
 
 Usage:
     python main.py                              # Use prod environment (default)
@@ -21,6 +22,7 @@ import argparse
 import io
 from datetime import datetime
 from pathlib import Path
+import pandas as pd
 
 # Fix Windows console encoding for Unicode characters
 if sys.platform == 'win32':
@@ -31,6 +33,7 @@ from src import config_loader
 from src import load_data
 from src import transform
 from src import calculate_kpis
+from src import generate_reports
 
 
 def parse_arguments():
@@ -137,7 +140,7 @@ def main():
     
     try:
         # Step 1: Load Configuration
-        print("[1/5] Loading configuration...")
+        print("[1/6] Loading configuration...")
         config = config_loader.load_config(args.config)
         print(f"✓ Configuration loaded: {config['metadata']['organization']}")
         
@@ -149,7 +152,7 @@ def main():
         print(f"✓ Environment: {env} ({env_desc})")
         
         # Step 2: Load Data
-        print("\n[2/5] Loading data files...")
+        print("\n[2/6] Loading data files...")
         print(f"  Incidents: {incidents_path}")
         incidents = load_data.load_incidents(incidents_path, config)
         print(f"✓ Loaded {len(incidents)} incidents")
@@ -163,7 +166,7 @@ def main():
             print("ℹ Request aging (SM003) disabled - skipping request data")
         
         # Step 3: Transform Data
-        print("\n[3/5] Transforming data (adding calculated fields)...")
+        print("\n[3/6] Transforming data (adding calculated fields)...")
         incidents = transform.add_incident_flags(incidents, config)
         print(f"✓ Added incident flags")
         
@@ -172,12 +175,12 @@ def main():
             print(f"✓ Added request flags")
         
         # Step 4: Calculate KPIs
-        print("\n[4/5] Calculating KPIs...")
+        print("\n[4/6] Calculating KPIs...")
         kpi_results = calculate_kpis.calculate_all(incidents, requests, config)
         print(f"✓ Calculated {len(kpi_results)-1} KPIs + overall score")
         
         # Step 5: Display Results
-        print("\n[5/5] Results:")
+        print("\n[5/6] Results:")
         print("\n" + "="*70)
         print("KPI RESULTS")
         print("="*70)
@@ -213,6 +216,31 @@ def main():
                     print(f"  Total Resolved: {kpi_data['Total_Resolved']}")
                     print(f"  FCR: {kpi_data['FCR_Count']} ({kpi_data['FCR_Percentage']}%)")
                     print(f"  Target: ≥{kpi_data['Target_Rate']}%")
+        
+        # Step 6: Generate Excel Report
+        print("\n[6/6] Generating Excel report...")
+        
+        # Create output directory
+        output_dir = "data/output"
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # Generate timestamped filename
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        env_suffix = f"_{env}" if env != "prod" else ""
+        output_file = f"{output_dir}/KPI_Report{env_suffix}_{timestamp}.xlsx"
+        
+        print(f"  Output file: {output_file}")
+        
+        # Generate Excel report
+        generate_reports.generate_excel_report(
+            kpi_results=kpi_results,
+            incidents=incidents,
+            requests=requests if requests is not None else pd.DataFrame(),
+            config=config,
+            output_path=output_file
+        )
+        
+        print(f"✓ Excel report generated successfully")
         
         print("\n" + "="*70)
         print(f"✓ Pipeline completed successfully")
