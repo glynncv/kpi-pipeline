@@ -9,11 +9,24 @@ This script runs the complete KPI pipeline:
 5. Displays results
 
 Usage:
-    python main.py
+    python main.py                              # Use prod environment (default)
+    python main.py --env dev                    # Use dev environment
+    python main.py --env uat                    # Use UAT environment
+    python main.py --incidents path/to/file.csv # Override incidents file
+    python main.py --requests path/to/file.csv  # Override requests file
 """
 
 import sys
+import os
+import argparse
+import io
 from datetime import datetime
+from pathlib import Path
+
+# Fix Windows console encoding for Unicode characters
+if sys.platform == 'win32':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 from src import config_loader
 from src import load_data
@@ -21,8 +34,103 @@ from src import transform
 from src import calculate_kpis
 
 
+def parse_arguments():
+    """Parse command-line arguments."""
+    parser = argparse.ArgumentParser(
+        description='KPI Pipeline - Calculate and report KPI metrics',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python main.py                                    # Use production data (default)
+  python main.py --env dev                          # Use development test data
+  python main.py --env uat                          # Use UAT environment
+  python main.py --incidents custom_incidents.csv   # Override incidents file
+  python main.py --requests custom_requests.csv     # Override requests file
+  python main.py --input-dir data/archive           # Use different input directory
+        """
+    )
+    
+    parser.add_argument(
+        '--env',
+        choices=['dev', 'uat', 'prod'],
+        help='Environment to use (dev/uat/prod). Overrides config default.'
+    )
+    
+    parser.add_argument(
+        '--incidents',
+        help='Path to incidents CSV file (overrides environment setting)'
+    )
+    
+    parser.add_argument(
+        '--requests',
+        help='Path to requests CSV file (overrides environment setting)'
+    )
+    
+    parser.add_argument(
+        '--input-dir',
+        help='Input directory path (overrides environment setting)'
+    )
+    
+    parser.add_argument(
+        '--config',
+        default='config/kpi_config.yaml',
+        help='Path to KPI config file (default: config/kpi_config.yaml)'
+    )
+    
+    return parser.parse_args()
+
+
+def get_data_file_paths(config, args):
+    """
+    Get data file paths from config and apply CLI overrides.
+    
+    Args:
+        config: Loaded configuration dictionary
+        args: Parsed command-line arguments
+    
+    Returns:
+        Tuple of (incidents_path, requests_path, environment_name)
+    """
+    # Get environment setting
+    env = args.env if args.env else config['data_sources']['active_environment']
+    
+    # Get environment config
+    env_config = config['data_sources']['environments'][env]
+    
+    # Build paths from config
+    input_dir = env_config['input_directory']
+    incidents_file = env_config['incidents_file']
+    requests_file = env_config['requests_file']
+    
+    # Apply CLI overrides
+    if args.input_dir:
+        input_dir = args.input_dir
+    
+    if args.incidents:
+        # If absolute path or contains directory separator, use as-is
+        if Path(args.incidents).is_absolute() or os.sep in args.incidents:
+            incidents_path = args.incidents
+        else:
+            incidents_path = os.path.join(input_dir, args.incidents)
+    else:
+        incidents_path = os.path.join(input_dir, incidents_file)
+    
+    if args.requests:
+        if Path(args.requests).is_absolute() or os.sep in args.requests:
+            requests_path = args.requests
+        else:
+            requests_path = os.path.join(input_dir, args.requests)
+    else:
+        requests_path = os.path.join(input_dir, requests_file)
+    
+    return incidents_path, requests_path, env
+
+
 def main():
     """Execute the KPI pipeline."""
+    # Parse command-line arguments
+    args = parse_arguments()
+    
     print("="*70)
     print("KPI PIPELINE - EXECUTION")
     print("="*70)
@@ -32,23 +140,26 @@ def main():
     try:
         # Step 1: Load Configuration
         print("[1/5] Loading configuration...")
-        config = config_loader.load_config()
+        config = config_loader.load_config(args.config)
         print(f"✓ Configuration loaded: {config['metadata']['organization']}")
+        
+        # Get data file paths from config and CLI args
+        incidents_path, requests_path, env = get_data_file_paths(config, args)
+        
+        # Display environment info
+        env_desc = config['data_sources']['environments'][env]['description']
+        print(f"✓ Environment: {env} ({env_desc})")
         
         # Step 2: Load Data
         print("\n[2/5] Loading data files...")
-        incidents = load_data.load_incidents(
-            'data/input/PYTHON EMEA IM (last 90 days)_redacted_clean.csv',
-            config
-        )
+        print(f"  Incidents: {incidents_path}")
+        incidents = load_data.load_incidents(incidents_path, config)
         print(f"✓ Loaded {len(incidents)} incidents")
         
         requests = None
         if config['kpis']['SM003']['enabled']:
-            requests = load_data.load_requests(
-                'data/input/PYTHON EMEA SCT (last 90 days)_redacted_clean.csv',
-                config
-            )
+            print(f"  Requests: {requests_path}")
+            requests = load_data.load_requests(requests_path, config)
             print(f"✓ Loaded {len(requests)} requests")
         else:
             print("ℹ Request aging (SM003) disabled - skipping request data")
@@ -114,9 +225,14 @@ def main():
         
     except FileNotFoundError as e:
         print(f"\n✗ ERROR: {e}")
-        print("\nPlease ensure CSV files are in the data/input/ directory:")
-        print("  - data/input/PYTHON EMEA IM (last 90 days)_redacted_clean.csv")
-        print("  - data/input/PYTHON EMEA SCT (last 90 days)_redacted_clean.csv")
+        print("\nFile not found. Check:")
+        print("  1. The input directory exists")
+        print("  2. The CSV files are in the correct location")
+        print("  3. File names match the configuration")
+        print("\nUse --help to see available options:")
+        print("  python main.py --help")
+        print("\nOr specify files directly:")
+        print("  python main.py --incidents path/to/incidents.csv --requests path/to/requests.csv")
         return 1
         
     except Exception as e:

@@ -4,6 +4,31 @@ metadata:
   description: "KPI Processing Configuration"
   organization: "IT Service Management"
   schema_version: "2.0"
+
+# Data source configuration
+data_sources:
+  # Default environment (can be overridden via --env argument)
+  active_environment: "prod"
+  
+  # Environment-specific file paths
+  environments:
+    dev:
+      description: "Development/Testing - Small datasets"
+      input_directory: "data/input/test_data"
+      incidents_file: "sample_incidents_100_rows.csv"
+      requests_file: "sample_requests_100_rows.csv"
+    
+    uat:
+      description: "User Acceptance Testing"
+      input_directory: "data/input/uat"
+      incidents_file: "PYTHON_EMEA_IM_UAT.csv"
+      requests_file: "PYTHON_EMEA_SCT_UAT.csv"
+    
+    prod:
+      description: "Production - Full datasets"
+      input_directory: "data/input"
+      incidents_file: "PYTHON EMEA IM (last 90 days)_redacted_clean.csv"
+      requests_file: "PYTHON EMEA SCT (last 90 days)_redacted_clean.csv"
   
 column_mappings:
   number: "number"
