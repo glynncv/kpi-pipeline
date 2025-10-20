@@ -6,8 +6,9 @@ This script runs the complete KPI pipeline:
 2. Loads incident and request data
 3. Transforms data (adds calculated fields)
 4. Calculates KPIs
-5. Displays results
-6. Generates Excel report
+5. Calculates OKR scores
+6. Displays results
+7. Generates Excel report
 
 Usage:
     python main.py                              # Use prod environment (default)
@@ -34,6 +35,7 @@ from src import load_data
 from src import transform
 from src import calculate_kpis
 from src import generate_reports
+from src.okr_calculator import OKRCalculator
 
 
 def parse_arguments():
@@ -140,7 +142,7 @@ def main():
     
     try:
         # Step 1: Load Configuration
-        print("[1/6] Loading configuration...")
+        print("[1/7] Loading configuration...")
         config = config_loader.load_config(args.config)
         print(f"✓ Configuration loaded: {config['metadata']['organization']}")
         
@@ -152,7 +154,7 @@ def main():
         print(f"✓ Environment: {env} ({env_desc})")
         
         # Step 2: Load Data
-        print("\n[2/6] Loading data files...")
+        print("\n[2/7] Loading data files...")
         print(f"  Incidents: {incidents_path}")
         incidents = load_data.load_incidents(incidents_path, config)
         print(f"✓ Loaded {len(incidents)} incidents")
@@ -166,7 +168,7 @@ def main():
             print("ℹ Request aging (SM003) disabled - skipping request data")
         
         # Step 3: Transform Data
-        print("\n[3/6] Transforming data (adding calculated fields)...")
+        print("\n[3/7] Transforming data (adding calculated fields)...")
         incidents = transform.add_incident_flags(incidents, config)
         print(f"✓ Added incident flags")
         
@@ -175,12 +177,22 @@ def main():
             print(f"✓ Added request flags")
         
         # Step 4: Calculate KPIs
-        print("\n[4/6] Calculating KPIs...")
+        print("\n[4/7] Calculating KPIs...")
         kpi_results = calculate_kpis.calculate_all(incidents, requests, config)
         print(f"✓ Calculated {len(kpi_results)-1} KPIs + overall score")
         
-        # Step 5: Display Results
-        print("\n[5/6] Results:")
+        # Step 5: Calculate OKR Scores
+        print("\n[5/7] Calculating OKR scores...")
+        
+        okr_calc = OKRCalculator('config/okr_config.yaml', kpi_results)
+        okr_results = okr_calc.calculate_overall_okr()
+        action_triggers = okr_calc.get_action_triggers()
+        
+        print(f"✓ Calculated OKR R002 with {len(okr_results['key_results'])} Key Results")
+        print(f"✓ Overall OKR Score: {okr_results['overall_score']}%")
+        
+        # Step 6: Display Results
+        print("\n[6/7] Results:")
         print("\n" + "="*70)
         print("KPI RESULTS")
         print("="*70)
@@ -217,8 +229,45 @@ def main():
                     print(f"  FCR: {kpi_data['FCR_Count']} ({kpi_data['FCR_Percentage']}%)")
                     print(f"  Target: ≥{kpi_data['Target_Rate']}%")
         
-        # Step 6: Generate Excel Report
-        print("\n[6/6] Generating Excel report...")
+        # Display OKR Results
+        print("\n" + "="*70)
+        print("OKR R002 RESULTS")
+        print("="*70)
+        print(f"\nObjective: {okr_results['objective']}")
+        print(f"Overall Score: {okr_results['overall_score']}%")
+        print(f"Status: {okr_results['overall_status']}")
+        print(f"\nKey Results:")
+        print("-"*70)
+        
+        for kr_id in ['KR3', 'KR4', 'KR5', 'KR6']:
+            kr = okr_results['key_results'][kr_id]
+            print(f"\n{kr_id}: {kr['name']}")
+            print(f"  Score: {kr['score']}%")
+            print(f"  Status: {kr['status']}")
+            print(f"  Current: {kr['current_value']} {kr['target_operator']} {kr['target_value']} (target)")
+            print(f"  Gap to Target: {kr['gap_to_target']}")
+            print(f"  Owner: {kr['owner']}")
+        
+        # Display Action Triggers
+        if action_triggers['critical'] or action_triggers['warning']:
+            print("\n" + "="*70)
+            print("ACTION TRIGGERS")
+            print("="*70)
+            
+            if action_triggers['critical']:
+                print("\n🔴 CRITICAL ACTIONS REQUIRED:")
+                for trigger in action_triggers['critical']:
+                    print(f"  {trigger['kr_id']}: {trigger['action']}")
+                    print(f"    → Escalate to: {trigger['escalation']}")
+            
+            if action_triggers['warning']:
+                print("\n🟡 WARNING ACTIONS:")
+                for trigger in action_triggers['warning']:
+                    print(f"  {trigger['kr_id']}: {trigger['action']}")
+                    print(f"    → Escalate to: {trigger['escalation']}")
+        
+        # Step 7: Generate Excel Report
+        print("\n[7/7] Generating Excel report...")
         
         # Create output directory
         output_dir = "data/output"
@@ -231,9 +280,11 @@ def main():
         
         print(f"  Output file: {output_file}")
         
-        # Generate Excel report
+        # Generate Excel report (with OKR data)
         generate_reports.generate_excel_report(
             kpi_results=kpi_results,
+            okr_results=okr_results,
+            action_triggers=action_triggers,
             incidents=incidents,
             requests=requests if requests is not None else pd.DataFrame(),
             config=config,

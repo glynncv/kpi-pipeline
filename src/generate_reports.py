@@ -59,20 +59,26 @@ class ReportGenerator:
     
     def generate_excel_report(self,
                             kpi_results: Dict[str, Any],
+                            okr_results: Dict[str, Any],
+                            action_triggers: Dict[str, list],
                             incidents: pd.DataFrame,
                             requests: pd.DataFrame,
                             output_path: str) -> None:
         """
-        Generate complete Excel dashboard with all KPI results.
+        Generate complete Excel dashboard with all KPI and OKR results.
         
         Creates a multi-sheet workbook with:
-        - Executive Summary
+        - Executive Summary (KPI + OKR)
         - KPI Scorecard
         - Individual KPI detail sheets
-        - Raw data sheets
+        - OKR Summary
+        - Key Results Detail
+        - Action Items
         
         Args:
             kpi_results: Dictionary of KPI results from calculate_kpis
+            okr_results: Dictionary of OKR results from OKRCalculator
+            action_triggers: Dictionary of action triggers (critical/warning)
             incidents: Transformed incidents DataFrame
             requests: Transformed requests DataFrame
             output_path: Path where Excel file should be saved
@@ -89,9 +95,12 @@ class ReportGenerator:
             wb.remove(wb.active)  # Remove default sheet
             
             # Create sheets in order
-            self._create_executive_summary_sheet(wb, kpi_results)
+            self._create_executive_summary_sheet(wb, kpi_results, okr_results)
             self._create_scorecard_sheet(wb, kpi_results)
             self._create_kpi_detail_sheets(wb, kpi_results, incidents, requests)
+            self._create_okr_summary_sheet(wb, okr_results)
+            self._create_key_results_detail_sheet(wb, okr_results)
+            self._create_action_items_sheet(wb, action_triggers, okr_results)
             # Note: Raw data sheets omitted for executive reporting
             # Operational analysis module will include detailed data sheets
             
@@ -104,12 +113,14 @@ class ReportGenerator:
     
     def _create_executive_summary_sheet(self, 
                                        workbook: openpyxl.Workbook,
-                                       kpi_results: Dict[str, Any]) -> None:
+                                       kpi_results: Dict[str, Any],
+                                       okr_results: Dict[str, Any]) -> None:
         """
-        Create executive summary sheet with overall scorecard.
+        Create executive summary sheet with overall KPI and OKR scorecard.
         
         Shows:
-        - Overall score (large, prominent)
+        - Overall KPI score (large, prominent)
+        - Overall OKR score (large, prominent)
         - Performance band with color coding
         - Key metrics dashboard
         - Weighted breakdown
@@ -117,6 +128,7 @@ class ReportGenerator:
         Args:
             workbook: openpyxl Workbook object
             kpi_results: Dictionary with all KPI results including OVERALL
+            okr_results: Dictionary with OKR R002 results
         """
         ws = workbook.create_sheet("Executive Summary", 0)
         
@@ -239,8 +251,28 @@ class ReportGenerator:
                 cell.alignment = Alignment(horizontal='center')
             row += 1
         
+        # Add OKR Score display (right side of executive summary)
+        ws['G4'] = 'OKR R002 Score'
+        ws['G4'].font = Font(size=14, bold=True)
+        
+        okr_score = okr_results.get('overall_score', 0)
+        okr_status = okr_results.get('overall_status', 'UNKNOWN')
+        
+        ws['G5'] = f"{okr_score:.1f}%"
+        ws['G5'].font = Font(size=48, bold=True, color='FFFFFF')
+        # Strip emoji from status for color lookup
+        status_clean = okr_status.split()[-1] if ' ' in okr_status else okr_status
+        ws['G5'].fill = PatternFill(start_color=self.COLORS.get(status_clean, 'CCCCCC'),
+                                     end_color=self.COLORS.get(status_clean, 'CCCCCC'),
+                                     fill_type='solid')
+        ws['G5'].alignment = Alignment(horizontal='center', vertical='center')
+        
+        ws['G6'] = okr_status
+        ws['G6'].font = Font(size=14, bold=True)
+        ws['G6'].alignment = Alignment(horizontal='center')
+        
         # Auto-fit columns
-        for col in ['A', 'B', 'C', 'D', 'E']:
+        for col in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']:
             ws.column_dimensions[col].width = 20
     
     def _create_scorecard_sheet(self,
@@ -677,7 +709,227 @@ class ReportGenerator:
             ws_requests.freeze_panes = 'A2'
 
 
+    def _create_okr_summary_sheet(self,
+                                  workbook: openpyxl.Workbook,
+                                  okr_results: Dict[str, Any]) -> None:
+        """Create OKR R002 summary sheet"""
+        ws = workbook.create_sheet("OKR R002 Summary")
+        
+        # Title
+        ws['A1'] = 'OKR R002 - SERVICE DELIVERY EXCELLENCE'
+        ws['A1'].font = Font(size=16, bold=True, color='FFFFFF')
+        ws['A1'].fill = PatternFill(start_color=self.COLORS['HEADER'],
+                                     end_color=self.COLORS['HEADER'],
+                                     fill_type='solid')
+        ws.merge_cells('A1:E1')
+        ws.row_dimensions[1].height = 25
+        
+        # Objective
+        ws['A3'] = 'Objective:'
+        ws['A3'].font = Font(bold=True)
+        ws['B3'] = okr_results.get('objective', '')
+        ws.merge_cells('B3:E3')
+        
+        # Overall Score
+        ws['A5'] = 'Overall OKR Score'
+        ws['A5'].font = Font(size=14, bold=True)
+        ws['B5'] = f"{okr_results.get('overall_score', 0):.1f}%"
+        ws['B5'].font = Font(size=18, bold=True)
+        
+        ws['A6'] = 'Status'
+        ws['A6'].font = Font(bold=True)
+        ws['B6'] = okr_results.get('overall_status', '')
+        ws['B6'].font = Font(size=14, bold=True)
+        
+        # Key Results Summary Table
+        ws['A9'] = 'Key Results Summary'
+        ws['A9'].font = Font(size=14, bold=True)
+        
+        headers = ['KR ID', 'Name', 'Score', 'Status', 'Current', 'Target', 'Gap']
+        for col, header in enumerate(headers, start=1):
+            cell = ws.cell(row=10, column=col, value=header)
+            cell.font = Font(bold=True, color='FFFFFF')
+            cell.fill = PatternFill(start_color=self.COLORS['SUBHEADER'],
+                                   end_color=self.COLORS['SUBHEADER'],
+                                   fill_type='solid')
+            cell.alignment = Alignment(horizontal='center')
+        
+        # Add Key Results data
+        row = 11
+        for kr_id in ['KR3', 'KR4', 'KR5', 'KR6']:
+            kr = okr_results['key_results'][kr_id]
+            data = [
+                kr_id,
+                kr['name'],
+                f"{kr['score']:.1f}%",
+                kr['status'],
+                f"{kr['current_value']:.1f}",
+                f"{kr['target_operator']} {kr['target_value']}",
+                f"{kr['gap_to_target']:.1f}"
+            ]
+            
+            for col, value in enumerate(data, start=1):
+                cell = ws.cell(row=row, column=col, value=value)
+                cell.border = Border(left=Side(style='thin'), right=Side(style='thin'),
+                                   top=Side(style='thin'), bottom=Side(style='thin'))
+                cell.alignment = Alignment(horizontal='center' if col != 2 else 'left')
+            row += 1
+        
+        # Auto-fit columns
+        for col in ['A', 'B', 'C', 'D', 'E', 'F', 'G']:
+            ws.column_dimensions[col].width = 20
+        ws.column_dimensions['B'].width = 35
+    
+    def _create_key_results_detail_sheet(self,
+                                        workbook: openpyxl.Workbook,
+                                        okr_results: Dict[str, Any]) -> None:
+        """Create Key Results detail sheet"""
+        ws = workbook.create_sheet("Key Results Detail")
+        
+        # Title
+        ws['A1'] = 'KEY RESULTS DETAIL'
+        ws['A1'].font = Font(size=16, bold=True, color='FFFFFF')
+        ws['A1'].fill = PatternFill(start_color=self.COLORS['HEADER'],
+                                     end_color=self.COLORS['HEADER'],
+                                     fill_type='solid')
+        ws.merge_cells('A1:E1')
+        
+        row = 3
+        for kr_id in ['KR3', 'KR4', 'KR5', 'KR6']:
+            kr = okr_results['key_results'][kr_id]
+            
+            # KR Header
+            ws[f'A{row}'] = f"{kr_id}: {kr['name']}"
+            ws[f'A{row}'].font = Font(size=12, bold=True, color='FFFFFF')
+            ws[f'A{row}'].fill = PatternFill(start_color=self.COLORS['SUBHEADER'],
+                                            end_color=self.COLORS['SUBHEADER'],
+                                            fill_type='solid')
+            ws.merge_cells(f'A{row}:E{row}')
+            row += 1
+            
+            # KR Details
+            details = [
+                ['Description:', kr['description']],
+                ['Current Value:', f"{kr['current_value']:.1f}"],
+                ['Target:', f"{kr['target_operator']} {kr['target_value']}"],
+                ['Score:', f"{kr['score']:.1f}% / 100%"],
+                ['Status:', kr['status']],
+                ['Gap to Target:', f"{kr['gap_to_target']:.1f}"],
+                ['Owner:', kr['owner']],
+                ['Deadline:', kr['deadline']],
+                ['Days Remaining:', kr['days_remaining']],
+                ['Business Impact:', kr['business_impact']],
+            ]
+            
+            for label, value in details:
+                ws[f'A{row}'] = label
+                ws[f'A{row}'].font = Font(bold=True)
+                ws[f'B{row}'] = value
+                ws.merge_cells(f'B{row}:E{row}')
+                row += 1
+            
+            row += 1  # Blank row between KRs
+        
+        # Auto-fit columns
+        ws.column_dimensions['A'].width = 20
+        ws.column_dimensions['B'].width = 50
+    
+    def _create_action_items_sheet(self,
+                                   workbook: openpyxl.Workbook,
+                                   action_triggers: Dict[str, list],
+                                   okr_results: Dict[str, Any]) -> None:
+        """Create Action Items sheet"""
+        ws = workbook.create_sheet("Action Items")
+        
+        # Title
+        ws['A1'] = 'ACTION ITEMS & ESCALATIONS'
+        ws['A1'].font = Font(size=16, bold=True, color='FFFFFF')
+        ws['A1'].fill = PatternFill(start_color=self.COLORS['HEADER'],
+                                     end_color=self.COLORS['HEADER'],
+                                     fill_type='solid')
+        ws.merge_cells('A1:E1')
+        
+        # Critical Actions
+        row = 3
+        if action_triggers['critical']:
+            ws[f'A{row}'] = '🔴 CRITICAL ACTIONS REQUIRED'
+            ws[f'A{row}'].font = Font(size=14, bold=True)
+            ws[f'A{row}'].fill = PatternFill(start_color=self.COLORS['CRITICAL'],
+                                            end_color=self.COLORS['CRITICAL'],
+                                            fill_type='solid')
+            ws.merge_cells(f'A{row}:E{row}')
+            row += 1
+            
+            # Headers
+            headers = ['KR ID', 'Action Required', 'Escalate To', 'Priority']
+            for col, header in enumerate(headers, start=1):
+                cell = ws.cell(row=row, column=col, value=header)
+                cell.font = Font(bold=True, color='FFFFFF')
+                cell.fill = PatternFill(start_color=self.COLORS['SUBHEADER'],
+                                       end_color=self.COLORS['SUBHEADER'],
+                                       fill_type='solid')
+            row += 1
+            
+            # Critical action rows
+            for trigger in action_triggers['critical']:
+                data = [
+                    trigger['kr_id'],
+                    trigger['action'],
+                    trigger['escalation'],
+                    'IMMEDIATE'
+                ]
+                for col, value in enumerate(data, start=1):
+                    cell = ws.cell(row=row, column=col, value=value)
+                    cell.border = Border(left=Side(style='thin'), right=Side(style='thin'),
+                                       top=Side(style='thin'), bottom=Side(style='thin'))
+                row += 1
+            
+            row += 1  # Blank row
+        
+        # Warning Actions
+        if action_triggers['warning']:
+            ws[f'A{row}'] = '🟡 WARNING ACTIONS'
+            ws[f'A{row}'].font = Font(size=14, bold=True)
+            ws[f'A{row}'].fill = PatternFill(start_color=self.COLORS['WARNING'],
+                                            end_color=self.COLORS['WARNING'],
+                                            fill_type='solid')
+            ws.merge_cells(f'A{row}:E{row}')
+            row += 1
+            
+            # Headers
+            headers = ['KR ID', 'Action Required', 'Escalate To', 'Priority']
+            for col, header in enumerate(headers, start=1):
+                cell = ws.cell(row=row, column=col, value=header)
+                cell.font = Font(bold=True, color='FFFFFF')
+                cell.fill = PatternFill(start_color=self.COLORS['SUBHEADER'],
+                                       end_color=self.COLORS['SUBHEADER'],
+                                       fill_type='solid')
+            row += 1
+            
+            # Warning action rows
+            for trigger in action_triggers['warning']:
+                data = [
+                    trigger['kr_id'],
+                    trigger['action'],
+                    trigger['escalation'],
+                    'MONITOR'
+                ]
+                for col, value in enumerate(data, start=1):
+                    cell = ws.cell(row=row, column=col, value=value)
+                    cell.border = Border(left=Side(style='thin'), right=Side(style='thin'),
+                                       top=Side(style='thin'), bottom=Side(style='thin'))
+                row += 1
+        
+        # Auto-fit columns
+        ws.column_dimensions['A'].width = 10
+        ws.column_dimensions['B'].width = 50
+        ws.column_dimensions['C'].width = 25
+        ws.column_dimensions['D'].width = 15
+
+
 def generate_excel_report(kpi_results: Dict[str, Any],
+                          okr_results: Dict[str, Any],
+                          action_triggers: Dict[str, list],
                           incidents: pd.DataFrame,
                           requests: pd.DataFrame,
                           config,
@@ -687,10 +939,13 @@ def generate_excel_report(kpi_results: Dict[str, Any],
     
     Args:
         kpi_results: Dictionary of KPI results
+        okr_results: Dictionary of OKR results
+        action_triggers: Dictionary of action triggers
         incidents: Transformed incidents DataFrame
         requests: Transformed requests DataFrame
         config: Configuration object
         output_path: Path for output file
     """
     generator = ReportGenerator(config)
-    generator.generate_excel_report(kpi_results, incidents, requests, output_path)
+    generator.generate_excel_report(kpi_results, okr_results, action_triggers, 
+                                   incidents, requests, output_path)
