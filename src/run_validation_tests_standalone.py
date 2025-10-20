@@ -1,6 +1,10 @@
+#!/usr/bin/env python3
 """
-Comprehensive Validation Test Script for KPI Pipeline
+Standalone Validation Test Script for KPI Pipeline
 Tests the pipeline with real CSV data and compares to Power Query expectations.
+
+This script can be run directly: python src/run_validation_tests_standalone.py
+Or as a module: python -m src.run_validation_tests_standalone
 
 Expected Results (from Power Query):
 - Total incidents: 2,132
@@ -15,6 +19,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 import sys
+import os
 import io
 
 # Fix Windows console encoding for Unicode characters
@@ -22,25 +27,16 @@ if sys.platform == 'win32':
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
+# Add src directory to path for imports
+script_dir = os.path.dirname(os.path.abspath(__file__))
+if script_dir not in sys.path:
+    sys.path.insert(0, script_dir)
+
 # Import pipeline modules
-try:
-    # Try relative imports first (when run as module)
-    from . import config_loader
-    from . import load_data
-    from . import transform
-    from . import calculate_kpis
-except ImportError:
-    # Fall back to absolute imports (when run directly)
-    # Add src directory to path for direct execution
-    import os
-    src_dir = os.path.dirname(os.path.abspath(__file__))
-    if src_dir not in sys.path:
-        sys.path.insert(0, src_dir)
-    
-    import config_loader
-    import load_data
-    import transform
-    import calculate_kpis
+import config_loader
+import load_data
+import transform
+import calculate_kpis
 
 
 class ValidationTester:

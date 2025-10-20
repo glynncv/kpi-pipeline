@@ -24,9 +24,9 @@ def main():
     print()
     
     try:
-        # Run the validation tests as a module
+        # Run the validation tests (standalone version)
         result = subprocess.run([
-            sys.executable, '-m', 'src.run_validation_tests'
+            sys.executable, 'src/run_validation_tests_standalone.py'
         ], check=True)
         
         print("\n" + "="*70)
