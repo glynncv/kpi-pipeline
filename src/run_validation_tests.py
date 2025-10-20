@@ -15,12 +15,18 @@ import json
 from datetime import datetime
 from pathlib import Path
 import sys
+import io
+
+# Fix Windows console encoding for Unicode characters
+if sys.platform == 'win32':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 # Import pipeline modules
-import config_loader
-import load_data
-import transform
-import calculate_kpis
+from . import config_loader
+from . import load_data
+from . import transform
+from . import calculate_kpis
 
 
 class ValidationTester:
@@ -120,7 +126,7 @@ class ValidationTester:
         
         try:
             # Load incidents
-            incidents_file = 'data/PYTHON EMEA IM last 90 days_redacted_clean.csv'
+            incidents_file = 'data/input/PYTHON EMEA IM (last 90 days)_redacted_clean.csv'
             self.incidents = load_data.load_incidents(incidents_file, self.config)
             
             print(f"\n✓ Incidents loaded: {len(self.incidents)} rows")
@@ -135,7 +141,7 @@ class ValidationTester:
                 f"Expected {expected_incidents} incidents, got {len(self.incidents)}"
             
             # Load requests
-            requests_file = 'data/PYTHON EMEA SCT last 90 days_redacted_clean.csv'
+            requests_file = 'data/input/PYTHON EMEA SCT (last 90 days)_redacted_clean.csv'
             self.requests = load_data.load_requests(requests_file, self.config)
             
             print(f"\n✓ Requests loaded: {len(self.requests)} rows")
