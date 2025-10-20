@@ -10,8 +10,7 @@ This script runs the complete KPI pipeline:
 
 Usage:
     python main.py                              # Use prod environment (default)
-    python main.py --env dev                    # Use dev environment
-    python main.py --env uat                    # Use UAT environment
+    python main.py --env dev                    # Use dev environment (small test data)
     python main.py --incidents path/to/file.csv # Override incidents file
     python main.py --requests path/to/file.csv  # Override requests file
 """
@@ -42,8 +41,7 @@ def parse_arguments():
         epilog="""
 Examples:
   python main.py                                    # Use production data (default)
-  python main.py --env dev                          # Use development test data
-  python main.py --env uat                          # Use UAT environment
+  python main.py --env dev                          # Use dev test data (faster)
   python main.py --incidents custom_incidents.csv   # Override incidents file
   python main.py --requests custom_requests.csv     # Override requests file
   python main.py --input-dir data/archive           # Use different input directory
@@ -52,8 +50,8 @@ Examples:
     
     parser.add_argument(
         '--env',
-        choices=['dev', 'uat', 'prod'],
-        help='Environment to use (dev/uat/prod). Overrides config default.'
+        choices=['dev', 'prod'],
+        help='Environment to use (dev/prod). Overrides config default.'
     )
     
     parser.add_argument(

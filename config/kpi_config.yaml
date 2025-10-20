@@ -13,22 +13,18 @@ data_sources:
   # Environment-specific file paths
   environments:
     dev:
-      description: "Development/Testing - Small datasets"
+      description: "Development/Testing - Fast iteration with small datasets"
       input_directory: "data/input/test_data"
       incidents_file: "sample_incidents_100_rows.csv"
       requests_file: "sample_requests_100_rows.csv"
-    
-    uat:
-      description: "User Acceptance Testing"
-      input_directory: "data/input/uat"
-      incidents_file: "PYTHON_EMEA_IM_UAT.csv"
-      requests_file: "PYTHON_EMEA_SCT_UAT.csv"
+      note: "Use for rapid testing during development"
     
     prod:
-      description: "Production - Full datasets"
+      description: "Production - Full datasets for actual reporting"
       input_directory: "data/input"
       incidents_file: "PYTHON EMEA IM (last 90 days)_redacted_clean.csv"
       requests_file: "PYTHON EMEA SCT (last 90 days)_redacted_clean.csv"
+      note: "Default environment for real analysis"
   
 column_mappings:
   number: "number"
