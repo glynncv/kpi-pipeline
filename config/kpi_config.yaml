@@ -32,6 +32,7 @@ column_mappings:
   state: "incident_state"
   opened_at: "opened_at"
   resolved_at: "u_resolved"
+  closed_at: "u_resolved"  # Map closed_at to u_resolved for requests
   reassignment_count: "reassignment_count"
   country: "location_country"
   contact_type: "contact_type"
@@ -115,7 +116,7 @@ kpis:
     
   SM003:
     name: "Service Request Aging"
-    enabled: false
+    enabled: true
     description: "Service Request Aging Analysis"
     business_impact: "Medium"
     calculation:
