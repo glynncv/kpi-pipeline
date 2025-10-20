@@ -280,9 +280,11 @@ def main():
         
         print(f"  Output file: {output_file}")
         
-        # Generate Excel report
+        # Generate Excel report (with OKR data)
         generate_reports.generate_excel_report(
             kpi_results=kpi_results,
+            okr_results=okr_results,
+            action_triggers=action_triggers,
             incidents=incidents,
             requests=requests if requests is not None else pd.DataFrame(),
             config=config,
