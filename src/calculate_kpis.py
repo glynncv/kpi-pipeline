@@ -138,7 +138,7 @@ def calculate_kr5_request_aging(df: pd.DataFrame, config: Dict[str, Any]) -> Dic
         status = "Critical"
     
     return {
-        'KPI_Code': 'KR5',
+        'KPI_Code': 'SM003/KR5',
         'KPI_Name': kpi_config['name'],
         'Total_Requests': int(total_requests),
         'Aged_Count': int(aged_count),
@@ -275,9 +275,9 @@ def calculate_all(incidents: pd.DataFrame, requests: pd.DataFrame, config: Dict[
     if config['kpis']['SM002']['enabled']:
         results['SM002/KR4'] = calculate_sm002_backlog(incidents, config)
     
-    # KR5: Request Aging (if enabled and data available)
+    # SM003/KR5: Request Aging (if enabled and data available)
     if config['kpis']['SM003']['enabled'] and requests is not None:
-        results['KR5'] = calculate_kr5_request_aging(requests, config)
+        results['SM003/KR5'] = calculate_kr5_request_aging(requests, config)
     
     # SM004/KR6: First Call Resolution
     if config['kpis']['SM004']['enabled']:
