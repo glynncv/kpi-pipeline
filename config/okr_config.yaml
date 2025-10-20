@@ -151,7 +151,7 @@ key_results:
   # KR5: REQUEST BACKLOG MANAGEMENT
   KR5:
     name: "Request Backlog Management"
-    description: "Ensure fewer than 10% of service requests aged beyond 30 days"
+    description: "Ensure fewer than 30% of service requests aged beyond 30 days"
     
     # Links to KPI SM003
     calculation_source:
@@ -161,10 +161,10 @@ key_results:
     
     # Business target
     target:
-      value: 10.0
+      value: 30.0
       unit: "percent"
       operator: "<="
-      description: "≤10% of requests aged >30 days"
+      description: "≤30% of requests aged >30 days"
     
     # Deadline and urgency
     deadline:
@@ -183,23 +183,23 @@ key_results:
       performance_bands:
         excellent:
           min_score: 90
-          condition: "≤5% backlog"
-          description: "Outstanding performance"
+          condition: "≤15% aged requests"
+          description: "Outstanding performance (50% better than target)"
         
         good:
           min_score: 70
-          condition: "5-10% backlog"
-          description: "Meeting expectations"
+          condition: "15-30% aged requests"
+          description: "Meeting expectations (at or near target)"
         
         at_risk:
           min_score: 40
-          condition: "10-15% backlog"
-          description: "Requires attention"
+          condition: "30-45% aged requests"
+          description: "Requires attention (above target)"
         
         critical:
           min_score: 0
-          condition: ">15% backlog"
-          description: "Immediate intervention required"
+          condition: ">45% aged requests"
+          description: "Immediate intervention required (50% over target)"
     
     owner: "Service Request Team"
     business_impact: "Medium"
@@ -414,7 +414,7 @@ action_triggers:
   
   KR5:
     warning:
-      condition: "aged_percentage > 10%"
+      condition: "aged_percentage > 30%"
       action: "Weekly backlog review meeting"
       escalation: "Service Request Team"
       frequency: "Weekly"
