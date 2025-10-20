@@ -5,6 +5,7 @@ Calculates all KPIs and determines overall status.
 
 import pandas as pd
 from typing import Dict, Any, Tuple
+from . import config_loader
 
 
 def calculate_sm001_major_incidents(df: pd.DataFrame, config: Dict[str, Any]) -> Dict[str, Any]:
@@ -200,8 +201,6 @@ def calculate_overall_score(kpi_results: Dict[str, Dict], config: Dict[str, Any]
     Returns:
         Dictionary with overall score and status
     """
-    import config_loader
-    
     # Get weights (adjusted for disabled KPIs)
     weights = config_loader.get_kpi_weights(config)
     
