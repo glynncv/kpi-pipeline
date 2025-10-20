@@ -92,7 +92,8 @@ class ReportGenerator:
             self._create_executive_summary_sheet(wb, kpi_results)
             self._create_scorecard_sheet(wb, kpi_results)
             self._create_kpi_detail_sheets(wb, kpi_results, incidents, requests)
-            self._create_data_sheets(wb, incidents, requests)
+            # Note: Raw data sheets omitted for executive reporting
+            # Operational analysis module will include detailed data sheets
             
             # Save workbook
             wb.save(output_path)
@@ -481,10 +482,10 @@ class ReportGenerator:
                          kr5: Dict[str, Any],
                          requests: pd.DataFrame) -> None:
         """Create KR5 request aging detail sheet"""
-        ws = workbook.create_sheet("KR5 - Request Aging")
+        ws = workbook.create_sheet("SM004 - Request Aging")
         
         # Title
-        ws['A1'] = 'KR5 - SERVICE REQUEST AGING'
+        ws['A1'] = 'SM003 - SERVICE REQUEST AGING (KR5)'
         ws['A1'].font = Font(size=14, bold=True, color='FFFFFF')
         ws['A1'].fill = PatternFill(start_color=self.COLORS['HEADER'],
                                      end_color=self.COLORS['HEADER'],
