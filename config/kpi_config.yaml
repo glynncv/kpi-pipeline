@@ -4,6 +4,27 @@ metadata:
   description: "KPI Processing Configuration"
   organization: "IT Service Management"
   schema_version: "2.0"
+
+# Data source configuration
+data_sources:
+  # Default environment (can be overridden via --env argument)
+  active_environment: "prod"
+  
+  # Environment-specific file paths
+  environments:
+    dev:
+      description: "Development/Testing - Fast iteration with small datasets"
+      input_directory: "data/input/test_data"
+      incidents_file: "sample_incidents_100_rows.csv"
+      requests_file: "sample_requests_100_rows.csv"
+      note: "Use for rapid testing during development"
+    
+    prod:
+      description: "Production - Full datasets for actual reporting"
+      input_directory: "data/input"
+      incidents_file: "PYTHON EMEA IM (last 90 days)_redacted_clean.csv"
+      requests_file: "PYTHON EMEA SCT (last 90 days)_redacted_clean.csv"
+      note: "Default environment for real analysis"
   
 column_mappings:
   number: "number"
@@ -11,6 +32,7 @@ column_mappings:
   state: "incident_state"
   opened_at: "opened_at"
   resolved_at: "u_resolved"
+  closed_at: "u_resolved"  # Map closed_at to u_resolved for requests
   reassignment_count: "reassignment_count"
   country: "location_country"
   contact_type: "contact_type"
@@ -94,7 +116,7 @@ kpis:
     
   SM003:
     name: "Service Request Aging"
-    enabled: false
+    enabled: true
     description: "Service Request Aging Analysis"
     business_impact: "Medium"
     calculation:

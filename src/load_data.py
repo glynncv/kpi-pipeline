@@ -128,6 +128,19 @@ def load_requests(filepath: str, config: Dict[str, Any]) -> pd.DataFrame:
     df = pd.read_csv(filepath)
     print(f"Loaded {len(df)} requests from {filepath}")
     
+    # Get column mappings from config
+    col_map = config.get('column_mappings', {})
+    
+    # Apply column mappings
+    rename_map = {}
+    for standard_name, actual_name in col_map.items():
+        if actual_name in df.columns:
+            rename_map[actual_name] = standard_name
+    
+    if rename_map:
+        df = df.rename(columns=rename_map)
+        print(f"✓ Applied {len(rename_map)} column mappings")
+    
     # Parse date columns
     date_columns = ['opened_at', 'closed_at', 'due_date', 'expected_start', 'sys_created_on']
     for col in date_columns:
