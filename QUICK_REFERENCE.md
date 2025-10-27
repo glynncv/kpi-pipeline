@@ -3,6 +3,20 @@
 ## Daily Operations
 
 ### Run the Pipeline
+
+**Option 1: Simple Batch File (Windows)**
+```batch
+# Production data (default)
+run.bat
+
+# Development test data (fast)
+run.bat dev
+
+# Production data (explicit)
+run.bat prod
+```
+
+**Option 2: Direct Python Command**
 ```bash
 # Activate environment first
 source venv/bin/activate  # macOS/Linux
@@ -10,10 +24,15 @@ venv\Scripts\activate     # Windows
 
 # Run pipeline
 python main.py
+
+# With environment selection
+python main.py --env dev     # Development data (fast)
+python main.py --env prod    # Production data (full)
 ```
 
 ### Check Output
-Output location: `data/outputs/KPI_Dashboard_YYYY-MM-DD_HHMMSS.xlsx`
+Output location: `data/output/KPI_Report_[env]_YYYYMMDD_HHMMSS.xlsx`
+Example: `data/output/KPI_Report_dev_20251020_120728.xlsx`
 
 ## Common Tasks
 

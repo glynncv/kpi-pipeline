@@ -45,6 +45,11 @@ data/output/*.xlsx
 data/output/*.csv
 *.log
 
+# Development/experimental files
+dev_spec/
+test_integration*.py
+check_kr*.py
+
 # Jupyter Notebook
 .ipynb_checkpoints
 
