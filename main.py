@@ -35,6 +35,7 @@ from src import load_data
 from src import transform
 from src import calculate_kpis
 from src import generate_reports
+from src import geographic_analysis
 from src.okr_calculator import OKRCalculator
 
 
@@ -143,7 +144,7 @@ def main():
     try:
         # Step 1: Load Configuration
         print("[1/7] Loading configuration...")
-        config = config_loader.load_config(args.config)
+        config = config_loader.load_all_configs(args.config, 'config/okr_config.yaml')
         print(f"✓ Configuration loaded: {config['metadata']['organization']}")
         
         # Get data file paths from config and CLI args
@@ -190,6 +191,16 @@ def main():
         
         print(f"✓ Calculated OKR R002 with {len(okr_results['key_results'])} Key Results")
         print(f"✓ Overall OKR Score: {okr_results['overall_score']}%")
+        
+        # Step 5.5: Calculate Geographic Analysis
+        print("\n[5.5/7] Calculating geographic analysis...")
+        geo_results = geographic_analysis.analyze_geography(
+            incidents=incidents,
+            requests=requests if requests is not None else pd.DataFrame(),
+            config=config
+        )
+        print(f"✓ Analyzed {len(geo_results['location_summary'])} locations")
+        print(f"✓ Found {geo_results['intervention_summary']['critical_count']} critical locations")
         
         # Step 6: Display Results
         print("\n[6/7] Results:")
@@ -287,6 +298,7 @@ def main():
             action_triggers=action_triggers,
             incidents=incidents,
             requests=requests if requests is not None else pd.DataFrame(),
+            geo_results=geo_results,
             config=config,
             output_path=output_file
         )

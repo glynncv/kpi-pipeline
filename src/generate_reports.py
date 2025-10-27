@@ -63,7 +63,8 @@ class ReportGenerator:
                             action_triggers: Dict[str, list],
                             incidents: pd.DataFrame,
                             requests: pd.DataFrame,
-                            output_path: str) -> None:
+                            geo_results: Dict[str, Any] = None,
+                            output_path: str = None) -> None:
         """
         Generate complete Excel dashboard with all KPI and OKR results.
         
@@ -101,6 +102,14 @@ class ReportGenerator:
             self._create_okr_summary_sheet(wb, okr_results)
             self._create_key_results_detail_sheet(wb, okr_results)
             self._create_action_items_sheet(wb, action_triggers, okr_results)
+            
+            # Add geographic analysis sheet if results provided
+            if geo_results:
+                try:
+                    self._create_geographic_analysis_sheet(wb, geo_results)
+                except Exception as e:
+                    print(f"⚠️  Warning: Could not create geographic analysis sheet: {e}")
+            
             # Note: Raw data sheets omitted for executive reporting
             # Operational analysis module will include detailed data sheets
             
@@ -926,6 +935,19 @@ class ReportGenerator:
         ws.column_dimensions['C'].width = 25
         ws.column_dimensions['D'].width = 15
 
+    def _create_geographic_analysis_sheet(self, workbook, geo_results: Dict[str, Any]) -> None:
+        """
+        Create Geographic Analysis sheet with country and location breakdowns.
+        """
+        from src.geographic_analysis import analyze_geography
+        
+        # Create new sheet
+        ws = workbook.create_sheet("Geographic Analysis")
+        
+        # Simple header
+        ws['A1'] = "Geographic Analysis - Coming Soon"
+        ws['A1'].font = Font(bold=True, size=14)
+
 
 def generate_excel_report(kpi_results: Dict[str, Any],
                           okr_results: Dict[str, Any],
@@ -933,7 +955,8 @@ def generate_excel_report(kpi_results: Dict[str, Any],
                           incidents: pd.DataFrame,
                           requests: pd.DataFrame,
                           config,
-                          output_path: str) -> None:
+                          output_path: str = None,
+                          geo_results: Dict[str, Any] = None) -> None:
     """
     Convenience function to generate Excel report.
     
@@ -948,4 +971,4 @@ def generate_excel_report(kpi_results: Dict[str, Any],
     """
     generator = ReportGenerator(config)
     generator.generate_excel_report(kpi_results, okr_results, action_triggers, 
-                                   incidents, requests, output_path)
+                                   incidents, requests, geo_results, output_path)

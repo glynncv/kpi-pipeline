@@ -39,6 +39,57 @@ def load_config(config_path: str = "config/kpi_config.yaml") -> Dict[str, Any]:
     return config
 
 
+def load_okr_config(okr_config_path: str = "config/okr_config.yaml") -> Dict[str, Any]:
+    """
+    Load OKR configuration from YAML file.
+    
+    Args:
+        okr_config_path: Path to the OKR YAML configuration file
+        
+    Returns:
+        Dictionary containing OKR configuration data
+        
+    Raises:
+        FileNotFoundError: If OKR configuration file doesn't exist
+        yaml.YAMLError: If OKR configuration file is invalid
+    """
+    config_file = Path(okr_config_path)
+    
+    if not config_file.exists():
+        raise FileNotFoundError(f"OKR configuration file not found: {okr_config_path}")
+    
+    with open(config_file, 'r') as f:
+        config = yaml.safe_load(f)
+    
+    return config
+
+
+def load_all_configs(kpi_config_path: str = "config/kpi_config.yaml", 
+                     okr_config_path: str = "config/okr_config.yaml") -> Dict[str, Any]:
+    """
+    Load both KPI and OKR configurations and merge them.
+    
+    Args:
+        kpi_config_path: Path to the KPI YAML configuration file
+        okr_config_path: Path to the OKR YAML configuration file
+        
+    Returns:
+        Dictionary containing merged configuration data
+        
+    Raises:
+        FileNotFoundError: If any configuration file doesn't exist
+        yaml.YAMLError: If any configuration file is invalid
+    """
+    kpi_config = load_config(kpi_config_path)
+    okr_config = load_okr_config(okr_config_path)
+    
+    # Merge configs
+    merged_config = kpi_config.copy()
+    merged_config['okr'] = okr_config
+    
+    return merged_config
+
+
 def get_column_mapping(config: Dict[str, Any], field_name: str) -> str:
     """
     Get the CSV column name for a given field.
