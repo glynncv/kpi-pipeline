@@ -939,14 +939,163 @@ class ReportGenerator:
         """
         Create Geographic Analysis sheet with country and location breakdowns.
         """
-        from src.geographic_analysis import analyze_geography
-        
         # Create new sheet
         ws = workbook.create_sheet("Geographic Analysis")
         
-        # Simple header
-        ws['A1'] = "Geographic Analysis - Coming Soon"
-        ws['A1'].font = Font(bold=True, size=14)
+        # Define styles
+        header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+        header_font = Font(bold=True, color="FFFFFF", size=11)
+        
+        # Color codes for performance
+        green_fill = PatternFill(start_color="C6EFCE", end_color="C6EFCE", fill_type="solid")
+        yellow_fill = PatternFill(start_color="FFEB9C", end_color="FFEB9C", fill_type="solid")
+        red_fill = PatternFill(start_color="FFC7CE", end_color="FFC7CE", fill_type="solid")
+        
+        # Priority colors
+        critical_fill = PatternFill(start_color="FF6B6B", end_color="FF6B6B", fill_type="solid")
+        high_fill = PatternFill(start_color="FFA500", end_color="FFA500", fill_type="solid")
+        monitor_fill = PatternFill(start_color="FFE066", end_color="FFE066", fill_type="solid")
+        standard_fill = PatternFill(start_color="90EE90", end_color="90EE90", fill_type="solid")
+        
+        priority_colors = {
+            'Critical': critical_fill,
+            'High': high_fill,
+            'Monitor': monitor_fill,
+            'Standard': standard_fill
+        }
+        
+        thin_border = Border(
+            left=Side(style='thin'),
+            right=Side(style='thin'),
+            top=Side(style='thin'),
+            bottom=Side(style='thin')
+        )
+        
+        # Section 1: Title
+        current_row = 1
+        ws.merge_cells(f'A{current_row}:K{current_row}')
+        ws[f'A{current_row}'] = "GEOGRAPHIC ANALYSIS - KPI Performance by Country & Location"
+        ws[f'A{current_row}'].font = Font(bold=True, size=14)
+        ws[f'A{current_row}'].alignment = Alignment(horizontal='center')
+        current_row += 2
+        
+        # Section 2: Intervention Summary
+        ws[f'A{current_row}'] = "INTERVENTION SUMMARY"
+        ws[f'A{current_row}'].font = Font(bold=True, size=12)
+        current_row += 1
+        
+        intervention = geo_results['intervention_summary']
+        summary_data = [
+            ['Total Locations', intervention['total_locations']],
+            ['Critical (Immediate Action)', intervention['critical_count']],
+            ['High Priority', intervention['high_count']],
+            ['Monitor', intervention['monitor_count']],
+            ['Standard (On Target)', intervention['standard_count']]
+        ]
+        
+        for label, value in summary_data:
+            ws[f'A{current_row}'] = label
+            ws[f'B{current_row}'] = value
+            ws[f'A{current_row}'].font = Font(bold=True)
+            current_row += 1
+        
+        current_row += 1
+        
+        # Section 3: Country Summary
+        ws[f'A{current_row}'] = "COUNTRY SUMMARY"
+        ws[f'A{current_row}'].font = Font(bold=True, size=12)
+        current_row += 1
+        
+        country_df = geo_results['country_summary']
+        
+        # Write country summary table with headers and data
+        for r_idx, row in enumerate(dataframe_to_rows(country_df, index=False, header=True)):
+            for c_idx, value in enumerate(row, 1):
+                cell = ws.cell(row=current_row, column=c_idx, value=value)
+                cell.border = thin_border
+                
+                # Header row formatting
+                if r_idx == 0:
+                    cell.fill = header_fill
+                    cell.font = header_font
+                    cell.alignment = Alignment(horizontal='center', vertical='center')
+                else:
+                    # Color code intervention priority column (skip merged cells)
+                    try:
+                        col_letter = cell.column_letter
+                        if col_letter == 'K':  # Intervention_Priority column
+                            if value in priority_colors:
+                                cell.fill = priority_colors[value]
+                    except AttributeError:
+                        # Skip merged cells
+                        pass
+            
+            current_row += 1
+        
+        current_row += 1
+        
+        # Section 4: Top 10 Performers
+        if len(geo_results.get('top_performers', pd.DataFrame())) > 0:
+            ws[f'A{current_row}'] = "TOP 10 PERFORMERS (Best First Call Resolution)"
+            ws[f'A{current_row}'].font = Font(bold=True, size=12)
+            current_row += 1
+            
+            top_df = geo_results['top_performers']
+            top_cols = ['Location', 'Country', 'Total_Volume', 'FCR_Rate', 'Backlog_Pct']
+            top_df_display = top_df[[c for c in top_cols if c in top_df.columns]].head(10)
+            
+            for r_idx, row in enumerate(dataframe_to_rows(top_df_display, index=False, header=True)):
+                for c_idx, value in enumerate(row, 1):
+                    cell = ws.cell(row=current_row, column=c_idx, value=value)
+                    cell.border = thin_border
+                    
+                    if r_idx == 0:
+                        cell.fill = header_fill
+                        cell.font = header_font
+                        cell.alignment = Alignment(horizontal='center', vertical='center')
+                
+                current_row += 1
+            
+            current_row += 1
+        
+        # Section 5: Bottom 10 Performers (Need Intervention)
+        if len(geo_results.get('bottom_performers', pd.DataFrame())) > 0:
+            ws[f'A{current_row}'] = "BOTTOM 10 PERFORMERS (Need Intervention)"
+            ws[f'A{current_row}'].font = Font(bold=True, size=12)
+            current_row += 1
+            
+            bottom_df = geo_results['bottom_performers']
+            bottom_cols = ['Location', 'Country', 'Total_Volume', 'FCR_Rate', 'Backlog_Pct', 'Intervention_Priority']
+            bottom_df_display = bottom_df[[c for c in bottom_cols if c in bottom_df.columns]].head(10)
+            
+            for r_idx, row in enumerate(dataframe_to_rows(bottom_df_display, index=False, header=True)):
+                for c_idx, value in enumerate(row, 1):
+                    cell = ws.cell(row=current_row, column=c_idx, value=value)
+                    cell.border = thin_border
+                    
+                    if r_idx == 0:
+                        cell.fill = header_fill
+                        cell.font = header_font
+                        cell.alignment = Alignment(horizontal='center', vertical='center')
+                
+                current_row += 1
+        
+        # Auto-adjust column widths
+        for column in ws.columns:
+            max_length = 0
+            try:
+                column_letter = column[0].column_letter
+            except AttributeError:
+                continue  # Skip merged cells
+            
+            for cell in column:
+                try:
+                    if cell.value and len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = min(max_length + 2, 50)
+            ws.column_dimensions[column_letter].width = adjusted_width
 
 
 def generate_excel_report(kpi_results: Dict[str, Any],
