@@ -22,8 +22,10 @@ data_sources:
     prod:
       description: "Production - Full datasets for actual reporting"
       input_directory: "data/input"
-      incidents_file: "PYTHON EMEA IM (last 90 days)_redacted_clean.csv"
-      requests_file: "PYTHON EMEA SCT (last 90 days)_redacted_clean.csv"
+      #incidents_file: "PYTHON EMEA IM (last 90 days)_redacted_clean.csv"
+      #requests_file: "PYTHON EMEA SCT (last 90 days)_redacted_clean.csv"
+      incidents_file: "PYTHON EMEA IM (2025)_redacted_clean.csv"
+      requests_file: "PYTHON EMEA SCT (2025)_redacted_clean.csv"
       note: "Default environment for real analysis"
   
 column_mappings:
@@ -123,7 +125,7 @@ kpis:
       method: "request_aging"
     targets:
       aged_max: 0
-      adherence_min: 90.0
+      adherence_min: 70.0
     required_fields:
       - "number"
       - "opened_at"
