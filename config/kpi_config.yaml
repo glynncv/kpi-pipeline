@@ -1,9 +1,16 @@
 # KPI Configuration File - Final Clean Version
+# Version: 2.1 - Added Problem Management Support
 metadata:
-  version: "1.0"
-  description: "KPI Processing Configuration"
+  version: "2.1"
+  description: "KPI Processing Configuration including Problem Management"
   organization: "IT Service Management"
   schema_version: "2.0"
+  last_updated: "2025-11-03"
+  changes:
+    - "Added Problem Management data sources"
+    - "Added Task (RCA) data mappings"
+    - "Added RCA001 KPI configuration"
+    - "Updated thresholds for RCA tracking"
 
 # Data source configuration
 data_sources:
@@ -29,6 +36,7 @@ data_sources:
       note: "Default environment for real analysis"
   
 column_mappings:
+  # Legacy flat format (for backward compatibility)
   number: "number"
   priority: "priority"
   state: "incident_state"
@@ -38,47 +46,192 @@ column_mappings:
   reassignment_count: "reassignment_count"
   country: "location_country"
   contact_type: "contact_type"
+  
+  # Structured format (Problem Management support)
+  incident_data:
+    number: "number"
+    opened_at: "opened_at"
+    resolved_at: "u_resolved"
+    closed_at: "closed_at"
+    priority: "priority"
+    state: "incident_state"
+    assignment_group: "assignment_group"
+    reassignment_count: "reassignment_count"
+    short_description: "short_description"
+    contact_type: "contact_type"
+    category: "category"
+    location_country: "location_country"
+    location_city: "location_city"
+    location_region: "location_u_region"
+    location_name: "location_u_site_name"
+  
+  request_data:
+    number: "number"
+    opened_at: "opened_at"
+    closed_at: "closed_at"
+    due_date: "due_date"
+    state: "request_item_state"
+    assignment_group: "assignment_group"
+    location_country: "request_item_u_opened_on_behalf_of_location_country"
+    location_city: "request_item_u_opened_on_behalf_of_location_city"
+    location_region: "request_item_u_opened_on_behalf_of_location_u_region"
+    location_name: "request_item_u_opened_on_behalf_of_location_u_site_name"
+  
+  problem_data:
+    number: "number"
+    opened_at: "opened_at"
+    closed_at: "closed_at"
+    priority: "priority"
+    state: "state"
+    assignment_group: "assignment_group"
+    short_description: "short_description"
+    u_rca_required: "u_rca_required"
+    u_root_cause: "u_root_cause"
+    u_root_cause_category: "u_root_cause_category"
+    u_resolution_code: "u_resolution_code"
+    location_country: "location.country"
+    location_name: "location.name"
+    location_region: "location.u_region"
+    location_site: "location.u_site_name"
+  
+  task_data:
+    task_number: "task"
+    parent_number: "task.parent.number"
+    sla_name: "sla"
+    stage: "stage"
+    has_breached: "has_breached"
+    due_date: "task.due_date"
+    start_time: "start_time"
+    planned_end_time: "planned_end_time"
+    end_time: "end_time"
+    duration: "duration"
+    business_duration: "business_duration"
+    time_left: "time_left"
 
 processing:
   priority_extraction:
-    regex_pattern: "\\d+"
-    fallback_value: 99
+    regex_pattern: "^(\\d+)"           # Extract first digit from "2 - High"
+    fallback_value: 99                  # Value for unparseable priorities
+    mapping:
+      "1 - Critical": 1
+      "2 - High": 2
+      "3 - Moderate": 3
+      "4 - Low": 4
   date_parsing:
     auto_detect: true
     formats: 
       - "%Y-%m-%d %H:%M:%S"
+      - "%Y-%m-%d"
+      - "%m/%d/%Y %H:%M:%S"
+      - "%m/%d/%Y"
+    timezone: "UTC"
+    handle_nulls: "keep_null"
+    encoding: "latin-1"                 # Handle special characters in exports
   signature_fields:
     - "number"
     - "priority"
     - "state"
     - "reassignment_count"
     - "resolved_at"
+  
+  # Boolean field processing (for RCA delivered, etc.)
+  boolean_processing:
+    true_values: ["true", "True", "TRUE", "1", "yes", "Yes", "YES", true]
+    false_values: ["false", "False", "FALSE", "0", "no", "No", "NO", false]
+    null_values: [null, "null", "Null", "NULL", "", "NA", "N/A"]
+  
+  # RCA stage mapping
+  rca_stage_processing:
+    completed_states: ["Achieved", "Breached"]
+    ontime_states: ["Achieved"]
+    late_states: ["Breached"]
+    inprogress_states: ["In progress", "In Progress"]
+    paused_states: ["Paused"]
+  
+  # Null handling strategy
+  null_handling:
+    reassignment_count: 0              # Treat null as zero reassignments
+    resolved_at: "keep_null"           # Keep null for open incidents
+    priority: 99                       # Unknown priority
+    rca_delivered: false               # Default to not delivered
+  
+  # Data validation
+  validation:
+    required_incident_fields: ["number", "opened_at", "priority"]
+    required_problem_fields: ["number", "opened_at", "priority"]
+    required_task_fields: ["task", "task.parent.number", "stage"]
 
 thresholds:
   priority:
     major_incident_levels: [1, 2]
+    p1_critical: 1
+    p2_high: 2
+    p3_moderate: 3
+    p4_low: 4
   aging:
     backlog_days: 10
     request_aging_days: 30
+    critical_aging_days: 5
   performance_bands:
     excellent: 90
     good: 80
     needs_improvement: 60
+  
+  # RCA thresholds
+  rca:
+    p1_rca_timeframe_days: 7          # P1 RCA due: 7 days from opened
+    p2_rca_timeframe_days: 14         # P2 RCA due: 14 days from opened
+    p3_rca_timeframe_days: 30         # P3 RCA due: 30 days (if required)
+  
+  # Problem Management thresholds
+  problem_management:
+    high_impact_resolution_days: 60    # High impact problems: resolve in 60 days
+    standard_resolution_days: 90       # Standard problems: resolve in 90 days
 
 global_status_rules:
   scorecard_scoring:
-    weight_sm001: 25
-    weight_sm002: 40
-    weight_sm003: 25
+    weight_sm001: 20                   # Adjusted for RCA001
+    weight_sm002: 35
+    weight_sm003: 20
     weight_sm004: 10
+    weight_rca001: 15                  # Problem Management RCA
     sm003_disabled_weights:
       weight_sm001: 25
-      weight_sm002: 50
-      weight_sm004: 25
+      weight_sm002: 40
+      weight_sm004: 15
+      weight_rca001: 20
+    rca001_disabled_weights:
+      weight_sm001: 25
+      weight_sm002: 40
+      weight_sm003: 20
+      weight_sm004: 15
   performance_bands:
     excellent: 90
     good: 80
     needs_improvement: 60
+  
+  # Escalation triggers
+  escalation:
+    immediate:
+      - "P1 incident count > 0"
+      - "Backlog percentage > 20%"
+      - "RCA completion rate < 80%"
+    urgent:
+      - "P2 incident count > 10"
+      - "Backlog percentage > 15%"
+      - "RCA completion rate < 85%"
+    monitor:
+      - "P2 incident count > 5"
+      - "Backlog percentage > 10%"
+      - "FCR rate < 80%"
+      - "RCA completion rate < 90%"
+
+# Data file paths
+data_files:
+  incident_file: "PYTHON_EMEA_IM_last_90_days_redacted_clean.csv"
+  request_file: "PYTHON_EMEA_SCT_last_90_days_redacted_clean.csv"
+  problem_file: "PYTHON EMEA PM P1P2 (This Year).csv"
+  task_file: "PYTHON EMEA TASK RCA (This Year).csv"
     
 kpis:
   SM001:
@@ -150,6 +303,24 @@ kpis:
         - "Self Heal"
         - "Event"
     
+  RCA001:
+    name: "RCA Completion Rate"
+    category: "Problem Management"
+    enabled: true
+    priority: "Critical"
+    okr_alignment: "R002-KR7 (Potential)"
+    description: "Percentage of P1/P2 problems with RCA completed on-time"
+    targets:
+      completion_rate_minimum: 90.0    # Minimum acceptable: 90%
+      completion_rate_expected: 95.0   # Target: 95%
+      p1_rca_timeframe_days: 7        # P1 RCA due in 7 days
+      p2_rca_timeframe_days: 14       # P2 RCA due in 14 days
+    weight: 15                         # 15% of scorecard
+    required_fields:
+      problem: ["number", "priority", "opened_at", "u_rca_required"]
+      task: ["task", "task.parent.number", "stage", "has_breached"]
+    data_source: "joined"              # Requires Problem + Task join
+  
   GEOGRAPHIC:
     name: "Geographic Analysis"
     enabled: true

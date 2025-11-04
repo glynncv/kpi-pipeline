@@ -8,10 +8,17 @@ This KPI Pipeline automates the calculation of critical service management metri
 
 ## 🎯 Features
 
+### Service Management KPIs
 - **SM001 - Major Incident Management**: Track P1 and P2 incidents against defined targets
 - **SM002 - Backlog Management**: Monitor incidents aged beyond threshold (default: 10 days)
 - **SM003 - Request Aging**: Track service requests exceeding age limits (default: 30 days)  
 - **SM004 - First Contact Resolution**: Measure resolution efficiency on first contact
+
+### Problem Management KPIs
+- **RCA001 - RCA Completion Rate**: Track Root Cause Analysis completion for P1/P2 problems (target: 95% on-time completion)
+- **Excel Dashboard Export**: Professional multi-sheet Excel reports with KPI summaries and detailed problem breakdowns
+
+### System Features
 - **Weighted Overall Score**: Configurable scoring across all KPIs with performance banding
 - **Geographic Analysis**: Built-in support for country-level filtering and analysis
 - **YAML Configuration**: Simple, human-readable configuration management
@@ -65,6 +72,8 @@ chmod +x setup.sh
 5. **Prepare your data**
    - Place your incident CSV file in `data/input/`
    - Place your request CSV file in `data/input/` (if using SM003)
+   - Place your problem CSV file in `data/` (if using RCA001)
+   - Place your task CSV file in `data/` (if using RCA001)
    - See `data/input/README.md` for expected format
 
 6. **Run the pipeline**
@@ -89,8 +98,12 @@ kpi_pipeline/
 │   ├── __init__.py
 │   ├── config_loader.py          # Configuration management
 │   ├── load_data.py              # Data loading and validation
+│   ├── load_problem_data.py      # Problem Management data loading
 │   ├── transform.py              # Data transformation logic
-│   └── calculate_kpis.py         # KPI calculation engine
+│   ├── transform_problems.py     # Problem Management transformations
+│   ├── calculate_kpis.py         # KPI calculation engine
+│   ├── calculate_pm_kpis.py      # Problem Management KPI calculations
+│   └── generate_pm_reports.py    # Excel dashboard generation
 ├── tests/
 │   ├── sample_data/              # Generated sample data for testing
 │   ├── test_pipeline.py          # Comprehensive test suite
@@ -105,7 +118,10 @@ kpi_pipeline/
 │   ├── GITHUB_SETUP.md           # GitHub setup instructions
 │   └── GIT_WORKFLOW.md           # Git workflow documentation
 ├── main.py                       # Main execution script
-├── validate_project.py           # Project validation tool
+├── scripts/                      # Utility scripts
+│   ├── run_pm.py                # Problem Management runner
+│   ├── run_validation.py        # Validation runner
+│   └── validate_project.py      # Project validation tool
 ├── requirements.txt              # Python dependencies
 ├── setup.sh / setup.bat          # Automated setup scripts
 ├── .gitignore                    # Git ignore patterns
@@ -133,7 +149,7 @@ For detailed configuration instructions, see [`docs/CONFIGURATION.md`](docs/CONF
 ### Run Validation Checks
 
 ```bash
-python validate_project.py
+python scripts/validate_project.py
 ```
 
 This checks:
@@ -199,19 +215,21 @@ For questions, issues, or support:
 
 ## 🗺️ Roadmap
 
-### Version 1.0.0 (Current)
+### Version 2.1 (Current)
 - ✅ Core KPI calculations (SM001, SM002, SM003, SM004)
+- ✅ Problem Management KPIs (RCA001)
+- ✅ Excel dashboard export with formatting
 - ✅ YAML configuration
 - ✅ Geographic analysis support
 - ✅ Comprehensive testing suite
 
 ### Future Enhancements
-- 📊 Excel dashboard output with charts
 - 📧 Email report distribution
 - 🔄 Automated scheduling support
 - 📈 Trend analysis over time
 - 🌐 Web dashboard interface
 - 🔌 API endpoint for integrations
+- 📊 Additional Problem Management KPIs (PM001-PM005)
 
 ## 🙏 Acknowledgments
 

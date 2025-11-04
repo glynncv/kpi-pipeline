@@ -76,6 +76,12 @@ python -c "from src.config_loader import load_config; config = load_config('conf
 2. Verify `backlog_days: 10` in config
 3. Check `u_resolved` mapped to `resolved_at`
 
+### Problem Management Data Not Loading
+1. Verify problem CSV file exists in `data/` directory
+2. Check task CSV file exists in `data/` directory
+3. Ensure `RCA001.enabled: true` in `config/kpi_config.yaml`
+4. Verify column mappings in `problem_data` and `task_data` sections
+
 ## File Locations
 
 | What | Where |
@@ -88,12 +94,18 @@ python -c "from src.config_loader import load_config; config = load_config('conf
 
 ## KPI Quick Reference
 
+### Service Management KPIs
 | KPI | Target | Backlog Threshold |
 |-----|--------|------------------|
 | SM001 | P1=0, P2≤5 | N/A |
 | SM002 | 0 backlog, ≥90% | 10 days |
 | SM003 | 0 aged, ≥90% | 30 days |
 | SM004 | ≥80% FTF | N/A |
+
+### Problem Management KPIs
+| KPI | Target | Description |
+|-----|--------|-------------|
+| RCA001 | ≥95% completion | Root Cause Analysis completion rate for P1/P2 problems |
 
 ## Support
 

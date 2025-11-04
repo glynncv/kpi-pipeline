@@ -3,7 +3,7 @@
 Validation Test Runner - Simple wrapper to run validation tests.
 
 Usage:
-    python run_validation.py
+    python scripts/run_validation.py
 """
 
 import sys

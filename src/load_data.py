@@ -99,9 +99,9 @@ def load_incidents(filepath: str, config: Dict[str, Any]) -> pd.DataFrame:
         current_time = pd.Timestamp.now()
         df['Days_Open'] = (current_time - df['opened_at']).dt.total_seconds() / 86400
     
-    print(f"✓ Parsed {sum(df.columns.str.contains('_at'))} date columns")
-    print(f"✓ Extracted priority numbers (range: {df['Priority_Number'].min()}-{df['Priority_Number'].max()})")
-    print(f"✓ Filled {df['reassignment_count'].isna().sum()} null reassignment counts")
+    print(f"[OK] Parsed {sum(df.columns.str.contains('_at'))} date columns")
+    print(f"[OK] Extracted priority numbers (range: {df['Priority_Number'].min()}-{df['Priority_Number'].max()})")
+    print(f"[OK] Filled {df['reassignment_count'].isna().sum()} null reassignment counts")
     
     return df
 
@@ -132,14 +132,19 @@ def load_requests(filepath: str, config: Dict[str, Any]) -> pd.DataFrame:
     col_map = config.get('column_mappings', {})
     
     # Apply column mappings
+    # Only process flat string mappings (ignore nested dicts like problem_data, task_data)
     rename_map = {}
     for standard_name, actual_name in col_map.items():
-        if actual_name in df.columns:
+        # Skip nested dictionaries (like problem_data, task_data)
+        if isinstance(actual_name, dict):
+            continue
+        # Only process string values (column name mappings)
+        if isinstance(actual_name, str) and actual_name in df.columns:
             rename_map[actual_name] = standard_name
     
     if rename_map:
         df = df.rename(columns=rename_map)
-        print(f"✓ Applied {len(rename_map)} column mappings")
+        print(f"[OK] Applied {len(rename_map)} column mappings")
     
     # Parse date columns
     date_columns = ['opened_at', 'closed_at', 'due_date', 'expected_start', 'sys_created_on']
@@ -164,7 +169,7 @@ def load_requests(filepath: str, config: Dict[str, Any]) -> pd.DataFrame:
     if rename_map:
         df = df.rename(columns=rename_map)
     
-    print(f"✓ Parsed {sum(df.columns.str.contains('_at|date'))} date columns")
+    print(f"[OK] Parsed {sum(df.columns.str.contains('_at|date'))} date columns")
     
     return df
 
@@ -196,13 +201,13 @@ if __name__ == "__main__":
         
         # Test incident loading
         incidents = load_incidents('data/PYTHON EMEA IM last 90 days_redacted_clean.csv', config)
-        print(f"\n✓ Loaded incidents: {len(incidents)} rows")
-        print(f"✓ Columns: {list(incidents.columns[:10])}...")
+        print(f"\n[OK] Loaded incidents: {len(incidents)} rows")
+        print(f"[OK] Columns: {list(incidents.columns[:10])}...")
         
         # Test request loading
         requests = load_requests('data/PYTHON EMEA SCT last 90 days_redacted_clean.csv', config)
-        print(f"\n✓ Loaded requests: {len(requests)} rows")
-        print(f"✓ Columns: {list(requests.columns[:10])}...")
+        print(f"\n[OK] Loaded requests: {len(requests)} rows")
+        print(f"[OK] Columns: {list(requests.columns[:10])}...")
         
     except Exception as e:
-        print(f"✗ Error: {e}")
+        print(f"[FAIL] Error: {e}")

@@ -8,7 +8,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned Features
-- Excel dashboard output with charts and formatting
 - Email report distribution
 - Automated scheduling support
 - Trend analysis over time periods
@@ -16,6 +15,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - API endpoints for integrations
 - Database connector (replace CSV input)
 - Multi-language support
+- Additional Problem Management KPIs (PM001-PM005)
+
+---
+
+## [2.1.0] - 2025-11-04
+
+### Added - Problem Management KPI Support
+
+#### Problem Management Features
+- **RCA001 - RCA Completion Rate**: Track Root Cause Analysis completion for P1/P2 problems
+  - Target: 95% on-time completion
+  - P1 RCA timeframe: 7 days
+  - P2 RCA timeframe: 14 days
+  - Status tracking: GREEN (≥95%), YELLOW (≥85%), RED (<85%)
+
+#### New Modules
+- `src/load_problem_data.py`: Load Problem and RCA Task data from CSV files
+- `src/transform_problems.py`: Transform Problem and Task data with calculated fields
+- `src/calculate_pm_kpis.py`: Calculate Problem Management KPIs
+- `src/generate_pm_reports.py`: Generate professional Excel dashboards for PM KPIs
+
+#### Excel Dashboard Export
+- Multi-sheet Excel workbook generation
+- KPI Summary sheet with metrics, status indicators, and gap analysis
+- Problem Details sheet with RCA status and timeline information
+- Professional formatting with color coding and conditional formatting
+- Auto-adjusted column widths and frozen headers
+
+#### Configuration Enhancements
+- Extended `config/kpi_config.yaml` with Problem Management sections
+- Added `problem_data` and `task_data` column mappings
+- Added RCA stage processing rules
+- Added Problem Management thresholds and targets
+- Updated scorecard weights to include RCA001
+
+#### Documentation Updates
+- Updated README.md with Problem Management features
+- Updated QUICK_REFERENCE.md with RCA001 KPI reference
+- Added troubleshooting section for Problem Management data
 
 ---
 

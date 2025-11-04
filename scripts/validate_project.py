@@ -8,6 +8,9 @@ import os
 from pathlib import Path
 import subprocess
 
+# Add parent directory to path so we can import src
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 
 def check_python_version():
     """Check if Python version meets requirements."""
