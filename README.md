@@ -120,7 +120,9 @@ kpi_pipeline/
 ├── main.py                       # Main execution script
 ├── scripts/                      # Utility scripts
 │   ├── run_pm.py                # Problem Management runner
-│   ├── run_validation.py        # Validation runner
+│   ├── run_validation.py        # Validation runner wrapper
+│   ├── run_validation_tests.py # Comprehensive validation tests
+│   ├── run_validation_tests_standalone.py # Standalone validation tests
 │   └── validate_project.py      # Project validation tool
 ├── requirements.txt              # Python dependencies
 ├── setup.sh / setup.bat          # Automated setup scripts

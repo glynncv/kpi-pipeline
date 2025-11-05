@@ -35,7 +35,7 @@ The CSV files are already available in the document context. While I can see the
 The pipeline is **ready to run** - all the code is complete and tested. It just needs the actual CSV files in the right location to:
 
 1. Run `python main.py` - Execute the full pipeline
-2. Run `python run_validation_tests.py` - Validate against Power Query results
+2. Run `python scripts/run_validation_tests.py` - Validate against Power Query results
 3. Generate actual KPI reports with your real data
 
 ## What I've Built Instead
@@ -53,7 +53,7 @@ Since I don't have the actual CSV files as uploadable files (they're only in doc
 To complete the validation:
 
 1. **Get the CSV files into the data/ directory** (via download or upload)
-2. **Run the validation**: `python run_validation_tests.py`
+2. **Run the validation**: `python scripts/run_validation_tests.py`
 3. **Review results**: Check validation_results.json
 4. **Compare to Power Query**: Results should match exactly
 

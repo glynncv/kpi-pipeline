@@ -1,10 +1,8 @@
-#!/usr/bin/env python3
 """
-Standalone Validation Test Script for KPI Pipeline
+Comprehensive Validation Test Script for KPI Pipeline
 Tests the pipeline with real CSV data and compares to Power Query expectations.
 
-This script can be run directly: python src/run_validation_tests_standalone.py
-Or as a module: python -m src.run_validation_tests_standalone
+This script can be run directly: python scripts/run_validation_tests.py
 
 Expected Results (from Power Query):
 - Total incidents: 2,132
@@ -27,16 +25,17 @@ if sys.platform == 'win32':
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
-# Add src directory to path for imports
+# Add parent directory to path so we can import src modules
 script_dir = os.path.dirname(os.path.abspath(__file__))
-if script_dir not in sys.path:
-    sys.path.insert(0, script_dir)
+parent_dir = os.path.dirname(script_dir)
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
 
-# Import pipeline modules
-import config_loader
-import load_data
-import transform
-import calculate_kpis
+# Import pipeline modules from src
+from src import config_loader
+from src import load_data
+from src import transform
+from src import calculate_kpis
 
 
 class ValidationTester:
@@ -81,7 +80,7 @@ class ValidationTester:
         
         # Save results
         self.save_results()
-        
+    
     def test_configuration(self):
         """Test configuration loading."""
         print("\n" + "="*70)
@@ -406,3 +405,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

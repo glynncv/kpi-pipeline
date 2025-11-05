@@ -51,7 +51,7 @@ Place these two CSV files in the `data/` directory:
 ### Step 3: Run It!
 ```bash
 # Validate everything works
-python run_validation_tests.py
+python scripts/run_validation_tests.py
 
 # Run the pipeline
 python main.py
@@ -120,7 +120,7 @@ Having trouble with CSV files? → **DATA_NOTES.md**
 **A:** In the `data/` directory. See DATA_NOTES.md for details.
 
 ### Q: How do I know it's working?
-**A:** Run `python run_validation_tests.py` - it will validate everything.
+**A:** Run `python scripts/run_validation_tests.py` - it will validate everything.
 
 ### Q: What if the numbers don't match Power Query?
 **A:** Check validation_results.json for detailed comparison. Most common issue: CSV files not in the right location.
@@ -220,7 +220,7 @@ From your original requirements:
 
 ### Immediate (Required)
 1. ✅ Place CSV files in `data/` directory
-2. ✅ Run: `python run_validation_tests.py`
+2. ✅ Run: `python scripts/run_validation_tests.py`
 3. ✅ Verify: All tests pass
 4. ✅ Run: `python main.py`
 5. ✅ Compare: Results match Power Query
@@ -298,6 +298,6 @@ Developer? Read this:
 **Ready?** Let's go! 🚀
 
 ```bash
-python run_validation_tests.py
+python scripts/run_validation_tests.py
 python main.py
 ```

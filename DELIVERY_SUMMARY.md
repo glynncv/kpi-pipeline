@@ -44,7 +44,7 @@ python main.py
 
 ### 4. Validate Results
 ```bash
-python run_validation_tests.py
+python scripts/run_validation_tests.py
 ```
 
 ---
@@ -136,7 +136,7 @@ The pipeline needs two CSV files in the `data/` directory. These are referenced 
 
 ### First Run
 1. Place CSV files in data/
-2. Run `python run_validation_tests.py`
+2. Run `python scripts/run_validation_tests.py`
 3. Check validation_results.json
 4. Confirm all tests pass ✅
 
