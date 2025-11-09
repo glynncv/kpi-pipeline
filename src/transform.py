@@ -10,17 +10,17 @@ from typing import Dict, Any
 def add_incident_flags(df: pd.DataFrame, config: Dict[str, Any]) -> pd.DataFrame:
     """
     Add calculated boolean flags to incident DataFrame.
-    
+
     Flags added:
         - Is_Major_Incident: Priority 1 or 2
         - Is_Backlog: Incident aged beyond threshold
         - Is_First_Time_Fix: Zero reassignments
         - Is_First_Call_Resolution: Zero reassignments AND excluded contact types
-        
+
     Args:
         df: Incident DataFrame
         config: Configuration dictionary
-        
+
     Returns:
         DataFrame with added flag columns
     """
@@ -64,15 +64,15 @@ def add_incident_flags(df: pd.DataFrame, config: Dict[str, Any]) -> pd.DataFrame
 def add_request_flags(df: pd.DataFrame, config: Dict[str, Any]) -> pd.DataFrame:
     """
     Add calculated boolean flags to request DataFrame.
-    
+
     Flags added:
         - Is_Aged: Request aged beyond threshold
         - Is_Closed: Request is closed
-        
+
     Args:
         df: Request DataFrame
         config: Configuration dictionary
-        
+
     Returns:
         DataFrame with added flag columns
     """
@@ -94,11 +94,11 @@ def add_request_flags(df: pd.DataFrame, config: Dict[str, Any]) -> pd.DataFrame:
 def create_summary_stats(df: pd.DataFrame, group_by: str = None) -> pd.DataFrame:
     """
     Create summary statistics DataFrame.
-    
+
     Args:
         df: Input DataFrame
         group_by: Optional column to group by
-        
+
     Returns:
         Summary statistics DataFrame
     """
