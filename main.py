@@ -7,6 +7,7 @@ This script runs the complete KPI pipeline:
 3. Transforms data (adds calculated fields)
 4. Calculates KPIs
 5. Calculates OKR scores
+5.5. Creates normalized output tables (intermediate layer)
 6. Displays results
 7. Generates Excel report
 
@@ -36,6 +37,7 @@ from src import transform
 from src import calculate_kpis
 from src import generate_reports
 from src import geographic_analysis
+from src import analysis_output
 from src.okr_calculator import OKRCalculator
 
 
@@ -201,7 +203,22 @@ def main():
         )
         print(f"✓ Analyzed {len(geo_results['location_summary'])} locations")
         print(f"✓ Found {geo_results['intervention_summary']['critical_count']} critical locations")
-        
+
+        # Step 5.75: Create Normalized Output Tables (Intermediate Layer)
+        print("\n[5.75/7] Creating normalized output tables...")
+        output_tables = analysis_output.create_all_output_tables(
+            kpi_results=kpi_results,
+            okr_results=okr_results,
+            action_triggers=action_triggers,
+            incidents=incidents,
+            requests=requests if requests is not None else pd.DataFrame(),
+            geo_results=geo_results
+        )
+        print(f"✓ Created {len(output_tables)} normalized tables")
+        for table_name, table_df in output_tables.items():
+            if not table_df.empty:
+                print(f"  - {table_name}: {len(table_df)} rows, {len(table_df.columns)} columns")
+
         # Step 6: Display Results
         print("\n[6/7] Results:")
         print("\n" + "="*70)
