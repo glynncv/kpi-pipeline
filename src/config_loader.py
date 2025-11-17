@@ -165,21 +165,32 @@ def get_kpi_weights(config: Dict[str, Any]) -> Dict[str, float]:
         Dictionary of KPI weights
     """
     scoring = config['global_status_rules']['scorecard_scoring']
+    weights = {}
     
-    # Check if SM003 is disabled
+    # Base weights for Service Management KPIs
+    weights['SM001'] = scoring['weight_sm001']
+    weights['SM002'] = scoring['weight_sm002']
+    weights['SM004'] = scoring['weight_sm004']
+    
+    # Add SM003 if enabled
+    if is_kpi_enabled(config, 'SM003'):
+        weights['SM003'] = scoring['weight_sm003']
+    
+    # Add RCA001 if enabled
+    if is_kpi_enabled(config, 'RCA001'):
+        weights['RCA001'] = scoring['weight_rca001']
+    
+    # If SM003 is disabled, use alternative weights
     if not is_kpi_enabled(config, 'SM003'):
-        return {
-            'SM001': scoring['sm003_disabled_weights']['weight_sm001'],
-            'SM002': scoring['sm003_disabled_weights']['weight_sm002'],
-            'SM004': scoring['sm003_disabled_weights']['weight_sm004']
-        }
-    else:
-        return {
-            'SM001': scoring['weight_sm001'],
-            'SM002': scoring['weight_sm002'],
-            'SM003': scoring['weight_sm003'],
-            'SM004': scoring['weight_sm004']
-        }
+        sm003_disabled = scoring.get('sm003_disabled_weights', {})
+        if sm003_disabled:
+            weights['SM001'] = sm003_disabled.get('weight_sm001', weights['SM001'])
+            weights['SM002'] = sm003_disabled.get('weight_sm002', weights['SM002'])
+            weights['SM004'] = sm003_disabled.get('weight_sm004', weights['SM004'])
+            if 'RCA001' in weights:
+                weights['RCA001'] = sm003_disabled.get('weight_rca001', weights['RCA001'])
+    
+    return weights
 
 
 # ============================================================

@@ -31,8 +31,11 @@ python main.py --env prod    # Production data (full)
 ```
 
 ### Check Output
-Output location: `data/output/KPI_Report_[env]_YYYYMMDD_HHMMSS.xlsx`
-Example: `data/output/KPI_Report_dev_20251020_120728.xlsx`
+Output files are saved to `data/output/`:
+- **KPI Report**: `KPI_Report_[env]_YYYYMMDD_HHMMSS.xlsx`
+  - Example: `KPI_Report_dev_20251020_120728.xlsx`
+- **PM Dashboard**: `PM_Dashboard_YYYY-MM-DD_HHMMSS.xlsx` (if PM data available)
+  - Example: `PM_Dashboard_2025-11-05_091641.xlsx`
 
 ## Common Tasks
 

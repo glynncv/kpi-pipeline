@@ -80,6 +80,10 @@ chmod +x setup.sh
    ```bash
    python main.py
    ```
+   
+   This generates:
+   - **KPI Report**: `data/output/KPI_Report_{env}_{timestamp}.xlsx`
+   - **PM Dashboard**: `data/output/PM_Dashboard_{timestamp}.xlsx` (if PM data available)
 
 ## 📁 Project Structure
 

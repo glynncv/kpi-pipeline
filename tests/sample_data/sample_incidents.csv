@@ -1,0 +1,51 @@
+number,priority,incident_state,opened_at,reassignment_count,location_country,contact_type,u_resolved,assignment_group,category
+INC0001000,2 - Low,New,2025-10-24 14:05:50,2,UK,Phone,2025-11-10 16:05:50,App Support,Software
+INC0001001,2 - Medium,Resolved,2025-10-23 14:05:50,5,Netherlands,Phone,2025-11-02 02:05:50,Network Team,Access
+INC0001002,1 - Medium,New,2025-08-25 14:05:50,1,Netherlands,Email,2025-09-01 20:05:50,App Support,Network
+INC0001003,4 - Medium,Closed,2025-09-21 14:05:50,2,Spain,Email,2025-10-03 00:05:50,Network Team,Network
+INC0001004,1 - High,In Progress,2025-08-21 14:05:50,2,Spain,Phone,2025-09-10 18:05:50,App Support,Network
+INC0001005,2 - Low,Closed,2025-11-01 14:05:50,3,Germany,Phone,2025-11-09 02:05:50,Database Team,Hardware
+INC0001006,1 - Low,Closed,2025-10-09 14:05:50,2,UK,Phone,2025-10-16 21:05:50,IT Support,Access
+INC0001007,1 - High,New,2025-09-05 14:05:50,4,Germany,Self-service,2025-09-21 07:05:50,App Support,Access
+INC0001008,3 - Low,Resolved,2025-10-13 14:05:50,3,UK,Phone,,App Support,Network
+INC0001009,1 - High,Resolved,2025-10-07 14:05:50,0,Spain,Self-service,2025-10-10 00:05:50,Database Team,Network
+INC0001010,2 - High,Closed,2025-10-03 14:05:50,1,France,Email,2025-10-21 19:05:50,IT Support,Access
+INC0001011,3 - High,Resolved,2025-10-09 14:05:50,1,Germany,Email,2025-10-24 15:05:50,Database Team,Network
+INC0001012,3 - High,Closed,2025-09-30 14:05:50,4,Spain,Walk-in,2025-10-20 11:05:50,Network Team,Software
+INC0001013,1 - Low,In Progress,2025-11-12 14:05:50,3,Netherlands,Self-service,,App Support,Hardware
+INC0001014,2 - Medium,New,2025-08-29 14:05:50,5,France,Email,2025-09-02 02:05:50,Database Team,Hardware
+INC0001015,1 - Low,Resolved,2025-10-04 14:05:50,2,France,Email,2025-10-15 03:05:50,IT Support,Network
+INC0001016,3 - High,Resolved,2025-11-13 14:05:50,1,France,Walk-in,2025-12-04 00:05:50,IT Support,Hardware
+INC0001017,3 - Medium,New,2025-10-16 14:05:50,1,France,Self-service,2025-10-20 18:05:50,App Support,Access
+INC0001018,2 - Low,Resolved,2025-09-15 14:05:50,1,Germany,Walk-in,2025-09-18 14:05:50,Network Team,Software
+INC0001019,3 - Low,Closed,2025-08-22 14:05:50,4,Netherlands,Walk-in,2025-09-04 04:05:50,Database Team,Access
+INC0001020,4 - Medium,Resolved,2025-09-26 14:05:50,5,Italy,Email,2025-10-15 01:05:50,Network Team,Software
+INC0001021,4 - Medium,In Progress,2025-08-23 14:05:50,1,Netherlands,Walk-in,2025-09-10 07:05:50,Network Team,Access
+INC0001022,3 - High,Closed,2025-08-27 14:05:50,2,UK,Phone,2025-09-09 23:05:50,App Support,Hardware
+INC0001023,3 - Medium,Resolved,2025-10-10 14:05:50,0,Italy,Email,,Database Team,Network
+INC0001024,3 - Medium,Resolved,2025-10-14 14:05:50,4,Italy,Walk-in,2025-10-31 10:05:50,IT Support,Access
+INC0001025,1 - Medium,In Progress,2025-10-02 14:05:50,5,Italy,Phone,2025-10-13 14:05:50,App Support,Access
+INC0001026,3 - High,Closed,2025-08-20 14:05:50,0,Spain,Self-service,2025-08-31 19:05:50,Database Team,Hardware
+INC0001027,2 - Low,In Progress,2025-09-16 14:05:50,3,Netherlands,Walk-in,2025-09-20 16:05:50,IT Support,Software
+INC0001028,3 - Medium,Resolved,2025-08-26 14:05:50,1,Spain,Email,2025-09-14 13:05:50,App Support,Network
+INC0001029,1 - High,Resolved,2025-09-04 14:05:50,2,Italy,Email,2025-09-20 00:05:50,Database Team,Software
+INC0001030,3 - High,Resolved,2025-09-03 14:05:50,4,Italy,Phone,,Network Team,Software
+INC0001031,3 - High,Resolved,2025-09-26 14:05:50,5,UK,Walk-in,2025-10-02 08:05:50,Database Team,Access
+INC0001032,1 - Medium,Closed,2025-09-08 14:05:50,4,Spain,Email,,IT Support,Software
+INC0001033,1 - High,Resolved,2025-10-31 14:05:50,5,UK,Phone,2025-11-11 07:05:50,IT Support,Software
+INC0001034,4 - Low,Resolved,2025-10-13 14:05:50,1,Italy,Self-service,2025-10-20 20:05:50,Database Team,Network
+INC0001035,2 - Medium,Resolved,2025-09-18 14:05:50,3,UK,Email,2025-10-08 03:05:50,Network Team,Network
+INC0001036,1 - Low,Closed,2025-10-30 14:05:50,1,Spain,Self-service,2025-11-07 00:05:50,IT Support,Hardware
+INC0001037,3 - Medium,Resolved,2025-08-30 14:05:50,4,Germany,Walk-in,2025-09-14 11:05:50,Network Team,Access
+INC0001038,4 - Low,Closed,2025-10-12 14:05:50,4,France,Phone,2025-10-29 02:05:50,Database Team,Software
+INC0001039,2 - Medium,Closed,2025-08-22 14:05:50,5,Italy,Email,2025-09-10 10:05:50,Database Team,Network
+INC0001040,1 - High,Closed,2025-09-06 14:05:50,2,Italy,Email,2025-09-27 04:05:50,App Support,Access
+INC0001041,2 - Medium,Resolved,2025-09-17 14:05:50,2,Germany,Phone,,App Support,Access
+INC0001042,3 - Low,New,2025-09-13 14:05:50,0,Spain,Phone,2025-09-20 22:05:50,Network Team,Hardware
+INC0001043,3 - Medium,Resolved,2025-09-30 14:05:50,1,UK,Phone,,Database Team,Hardware
+INC0001044,3 - Low,Resolved,2025-09-18 14:05:50,3,Spain,Walk-in,2025-09-23 14:05:50,App Support,Hardware
+INC0001045,2 - High,New,2025-09-21 14:05:50,5,Spain,Phone,,App Support,Hardware
+INC0001046,1 - Low,Closed,2025-08-22 14:05:50,4,Italy,Walk-in,2025-09-06 18:05:50,App Support,Network
+INC0001047,3 - Low,Resolved,2025-10-24 14:05:50,5,Netherlands,Phone,2025-11-12 03:05:50,App Support,Network
+INC0001048,2 - High,Resolved,2025-09-25 14:05:50,2,Germany,Email,2025-10-01 11:05:50,App Support,Hardware
+INC0001049,1 - High,Resolved,2025-10-21 14:05:50,2,Netherlands,Self-service,,Database Team,Software
