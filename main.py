@@ -82,7 +82,20 @@ Examples:
         default='config/kpi_config.yaml',
         help='Path to KPI config file (default: config/kpi_config.yaml)'
     )
-    
+
+    parser.add_argument(
+        '--save-tables',
+        action='store_true',
+        help='Save normalized output tables to data/output/tables/ for archiving'
+    )
+
+    parser.add_argument(
+        '--tables-format',
+        choices=['parquet', 'csv', 'json'],
+        default='parquet',
+        help='Format for saved tables (default: parquet)'
+    )
+
     return parser.parse_args()
 
 
@@ -218,6 +231,18 @@ def main():
         for table_name, table_df in output_tables.items():
             if not table_df.empty:
                 print(f"  - {table_name}: {len(table_df)} rows, {len(table_df.columns)} columns")
+
+        # Step 5.8: Save Output Tables (Optional - Physical Layer)
+        if args.save_tables:
+            print(f"\n[5.8/7] Saving output tables ({args.tables_format} format)...")
+            saved_files = analysis_output.save_output_tables(
+                output_tables,
+                output_dir='data/output/tables',
+                format=args.tables_format
+            )
+            print(f"✓ Saved {len(saved_files)} tables to data/output/tables/")
+            for table_name, filepath in saved_files.items():
+                print(f"  - {filepath}")
 
         # Step 6: Display Results
         print("\n[6/7] Results:")
