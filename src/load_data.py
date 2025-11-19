@@ -233,7 +233,13 @@ def _rename_request_location_columns(df: pd.DataFrame) -> pd.DataFrame:
     rename_map = {}
     if 'request_item_u_opened_on_behalf_of_location_country' in df.columns:
         rename_map['request_item_u_opened_on_behalf_of_location_country'] = 'country'
-
+    
+    # Rename location columns to match incident location columns
+    if 'request_item_u_opened_on_behalf_of_location_u_site_name' in df.columns:
+        rename_map['request_item_u_opened_on_behalf_of_location_u_site_name'] = 'location_u_site_name'
+    elif 'request_item_u_opened_on_behalf_of_location_name' in df.columns:
+        rename_map['request_item_u_opened_on_behalf_of_location_name'] = 'location'
+    
     return df.rename(columns=rename_map) if rename_map else df
 
 

@@ -39,6 +39,8 @@ from src import generate_reports
 from src import geographic_analysis
 from src import analysis_output
 from src.okr_calculator import OKRCalculator
+from src import load_problem_data
+from src import transform_problems
 
 
 def parse_arguments():
@@ -125,22 +127,25 @@ def get_data_file_paths(config, args):
     if args.input_dir:
         input_dir = args.input_dir
     
+    # Normalize input directory path (handles forward/backward slashes)
+    input_dir = str(Path(input_dir))
+    
     if args.incidents:
         # If absolute path or contains directory separator, use as-is
         if Path(args.incidents).is_absolute() or os.sep in args.incidents:
-            incidents_path = args.incidents
+            incidents_path = str(Path(args.incidents))
         else:
-            incidents_path = os.path.join(input_dir, args.incidents)
+            incidents_path = str(Path(input_dir) / args.incidents)
     else:
-        incidents_path = os.path.join(input_dir, incidents_file)
+        incidents_path = str(Path(input_dir) / incidents_file)
     
     if args.requests:
         if Path(args.requests).is_absolute() or os.sep in args.requests:
-            requests_path = args.requests
+            requests_path = str(Path(args.requests))
         else:
-            requests_path = os.path.join(input_dir, args.requests)
+            requests_path = str(Path(input_dir) / args.requests)
     else:
-        requests_path = os.path.join(input_dir, requests_file)
+        requests_path = str(Path(input_dir) / requests_file)
     
     return incidents_path, requests_path, env
 
@@ -209,10 +214,34 @@ def main():
         
         # Step 5.5: Calculate Geographic Analysis
         print("\n[5.5/7] Calculating geographic analysis...")
+        
+        # Load problem data if available (for PM KPIs)
+        problems = None
+        if config['kpis'].get('RCA001', {}).get('enabled', False):
+            try:
+                problems_raw, tasks_raw = load_problem_data.load_all_problem_data(
+                    'data/input', config
+                )
+                if problems_raw is not None and tasks_raw is not None:
+                    problems = transform_problems.transform_all_problem_data(problems_raw, tasks_raw)
+                    print(f"✓ Loaded {len(problems)} problems for geographic analysis")
+            except Exception as e:
+                print(f"ℹ Problem data not available for geographic analysis: {e}")
+                problems = None
+        
+        # Load OKR config for geographic OKR scores
+        okr_config = None
+        try:
+            okr_config = config_loader.load_okr_config('config/okr_config.yaml')
+        except Exception as e:
+            print(f"ℹ OKR config not available: {e}")
+        
         geo_results = geographic_analysis.analyze_geography(
             incidents=incidents,
             requests=requests if requests is not None else pd.DataFrame(),
-            config=config
+            config=config,
+            problems=problems,
+            okr_config=okr_config
         )
         print(f"✓ Analyzed {len(geo_results['location_summary'])} locations")
         print(f"✓ Found {geo_results['intervention_summary']['critical_count']} critical locations")
