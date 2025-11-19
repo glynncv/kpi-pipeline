@@ -308,6 +308,37 @@ def create_geographic_summary_table(geo_results: Dict[str, Any]) -> pd.DataFrame
     return geo_results['location_summary'].copy()
 
 
+def create_sdm_summary_table(sdm_results: Dict[str, Any]) -> pd.DataFrame:
+    """
+    Convert SDM analysis to normalized table.
+
+    Args:
+        sdm_results: Dictionary with SDM analysis results
+
+    Returns:
+        DataFrame with SDM-level metrics
+
+    Columns:
+        - SDM: Service Delivery Manager name
+        - Total_Volume: Total tickets (incidents + requests + problems)
+        - Incident_Volume: Number of incidents
+        - Request_Volume: Number of requests
+        - Problem_Volume: Number of problems
+        - Backlog_Pct: Backlog percentage
+        - FCR_Rate: First Call Resolution rate
+        - Aged_Request_Pct: Aged request percentage
+        - KR3_Score to KR6_Score: Individual OKR scores
+        - Overall_OKR_Score: Overall OKR score
+        - Overall_KPI_Score: Overall KPI score
+        - Volume_Tier: Volume tier classification
+        - Intervention_Priority: Priority level for intervention
+    """
+    if 'sdm_summary' not in sdm_results:
+        return pd.DataFrame()
+
+    return sdm_results['sdm_summary'].copy()
+
+
 def create_all_output_tables(
     kpi_results: Dict[str, Dict],
     okr_results: Dict[str, Any],
@@ -315,7 +346,8 @@ def create_all_output_tables(
     incidents: pd.DataFrame,
     requests: pd.DataFrame,
     geo_results: Dict[str, Any],
-    problems: Optional[pd.DataFrame] = None
+    problems: Optional[pd.DataFrame] = None,
+    sdm_results: Optional[Dict[str, Any]] = None
 ) -> Dict[str, pd.DataFrame]:
     """
     Generate all normalized output tables from analysis results.
@@ -336,6 +368,7 @@ def create_all_output_tables(
         requests: Enriched request DataFrame
         geo_results: Geographic analysis results
         problems: Enriched problem DataFrame (optional)
+        sdm_results: SDM analysis results (optional)
 
     Returns:
         Dictionary of normalized DataFrames keyed by table name
@@ -349,6 +382,7 @@ def create_all_output_tables(
         - request_detail: Request-level data
         - problem_detail: Problem-level data (if problems provided)
         - geographic_summary: Location-level analysis
+        - sdm_summary: SDM-level analysis (if sdm_results provided)
     """
     output_tables = {
         'kpi_summary': create_kpi_summary_table(kpi_results),
@@ -363,6 +397,10 @@ def create_all_output_tables(
     # Add problem detail table if problems data is available
     if problems is not None:
         output_tables['problem_detail'] = create_problem_detail_table(problems)
+
+    # Add SDM summary table if SDM results are available
+    if sdm_results is not None:
+        output_tables['sdm_summary'] = create_sdm_summary_table(sdm_results)
 
     return output_tables
 

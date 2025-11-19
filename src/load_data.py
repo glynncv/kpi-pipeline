@@ -9,6 +9,46 @@ from typing import Dict, Any, List
 from pathlib import Path
 
 
+def find_sdm_column(df: pd.DataFrame) -> str:
+    """
+    Find the SDM (Service Delivery Manager) column in a DataFrame.
+
+    SDM columns contain 'it_operations_manager' in their name, but the exact
+    column name varies between data sources.
+
+    Args:
+        df: DataFrame to search for SDM column
+
+    Returns:
+        Column name if found, None otherwise
+
+    Examples:
+        'assignment_group.u_it_operations_manager' -> found
+        'u_it_operations_manager.name' -> found
+    """
+    for col in df.columns:
+        if 'it_operations_manager' in col.lower():
+            return col
+    return None
+
+
+def _rename_sdm_column(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Find and rename SDM column to standard 'sdm' name.
+
+    Args:
+        df: DataFrame to process
+
+    Returns:
+        DataFrame with SDM column renamed to 'sdm' if found
+    """
+    sdm_col = find_sdm_column(df)
+    if sdm_col and sdm_col != 'sdm':
+        df = df.copy()
+        df = df.rename(columns={sdm_col: 'sdm'})
+    return df
+
+
 def extract_priority_number(priority_str: str, fallback: int = 99) -> int:
     """
     Extract numeric priority from priority string.
@@ -150,6 +190,7 @@ def load_incidents(filepath: str, config: Dict[str, Any]) -> pd.DataFrame:
     df = _add_priority_number(df, config)
     df = _fill_reassignment_count(df)
     df = _calculate_days_metrics(df, has_resolved=True)
+    df = _rename_sdm_column(df)
 
     _log_incident_processing(df)
     return df
@@ -212,6 +253,7 @@ def load_requests(filepath: str, config: Dict[str, Any]) -> pd.DataFrame:
     df = _parse_date_columns(df, ['opened_at', 'closed_at', 'due_date', 'expected_start', 'sys_created_on'])
     df = _add_days_to_close(df)
     df = _rename_request_location_columns(df)
+    df = _rename_sdm_column(df)
 
     _log_request_processing(df)
     return df

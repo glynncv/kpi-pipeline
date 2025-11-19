@@ -56,7 +56,7 @@ python main.py --save-tables --tables-format json
 
 ## Output Tables
 
-The layer produces 7-8 normalized tables (problem_detail is optional):
+The layer produces 7-9 normalized tables (problem_detail and sdm_summary are optional):
 
 | Table Name | Description | Key Columns |
 |------------|-------------|-------------|
@@ -68,6 +68,7 @@ The layer produces 7-8 normalized tables (problem_detail is optional):
 | `request_detail` | Request drill-down | number, Is_Aged, Days_Open |
 | `problem_detail` | Problem drill-down (optional) | number, priority, Is_Major_Problem, Requires_RCA, RCA_OnTime |
 | `geographic_summary` | Location analysis (all KPIs/OKRs) | Location, Country, Incident/Request/Problem metrics, OKR scores |
+| `sdm_summary` | SDM analysis (optional) | SDM, Total_Volume, Backlog_Pct, FCR_Rate, OKR scores |
 
 ## File Locations
 
@@ -82,7 +83,8 @@ data/output/tables/
 ├── incident_detail_20251109_143022.parquet
 ├── request_detail_20251109_143022.parquet
 ├── problem_detail_20251109_143022.parquet  (optional, if problems data available)
-└── geographic_summary_20251109_143022.parquet
+├── geographic_summary_20251109_143022.parquet
+└── sdm_summary_20251109_143022.parquet     (optional, if SDM data available)
 ```
 
 Files are timestamped to support historical trending.
@@ -128,6 +130,9 @@ problems_df = analysis_output.create_problem_detail_table(problems)  # If proble
 
 # Geographic summary
 geo_df = analysis_output.create_geographic_summary_table(geo_results)
+
+# SDM summary (optional, requires SDM data)
+sdm_df = analysis_output.create_sdm_summary_table(sdm_results)
 ```
 
 ### Saving Tables
@@ -283,6 +288,37 @@ generate_powerpoint(tables)  # Future capability
 | location | string | Location name (if available) |
 
 **Note**: This table is only created when problem management data is available and `RCA001` KPI is enabled.
+
+### sdm_summary Table
+
+| Column | Type | Description |
+|--------|------|-------------|
+| SDM | string | Service Delivery Manager name |
+| Total_Volume | int | Total tickets (incidents + requests + problems) |
+| Incident_Volume | int | Number of incidents |
+| Request_Volume | int | Number of requests |
+| Problem_Volume | int | Number of problems |
+| Backlog_Count | int | Number of backlog incidents |
+| Backlog_Pct | float | Backlog percentage |
+| Major_Incident_Count | int | Number of major incidents |
+| FCR_Count | int | Number of first call resolutions |
+| FCR_Rate | float | First call resolution rate (0-100) |
+| Aged_Request_Count | int | Number of aged requests |
+| Aged_Request_Pct | float | Aged request percentage |
+| Request_Adherence_Rate | float | Request adherence rate (0-100) |
+| KR3_Score | float | KR3 (Major Incidents) score (0-100) |
+| KR4_Score | float | KR4 (Backlog) score (0-100) |
+| KR5_Score | float | KR5 (Request Aging) score (0-100) |
+| KR6_Score | float | KR6 (FCR) score (0-100) |
+| Overall_OKR_Score | float | Weighted overall OKR score |
+| Overall_OKR_Status | string | On Track, At Risk, Off Track |
+| Overall_KPI_Score | float | Weighted overall KPI score |
+| Overall_KPI_Status | string | Excellent, Good, Needs Improvement, Poor |
+| Volume_Tier | string | Volume tier (tier_1 to tier_4) |
+| Volume_Tier_Name | string | Tier description (High Volume, etc.) |
+| Intervention_Priority | string | Critical, High, Monitor, Standard |
+
+**Note**: This table is only created when SDM data is available (columns containing 'it_operations_manager' are found).
 
 ## Future Extensions
 

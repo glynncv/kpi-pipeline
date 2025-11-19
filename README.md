@@ -21,6 +21,7 @@ This KPI Pipeline automates the calculation of critical service management metri
 ### System Features
 - **Weighted Overall Score**: Configurable scoring across all KPIs with performance banding
 - **Geographic Analysis**: Location-level analysis across all KPIs (incidents, requests, problems) and OKRs with volume tiers and intervention priorities
+- **SDM Analysis**: Service Delivery Manager breakdown with KPI/OKR scores and intervention priorities
 - **YAML Configuration**: Simple, human-readable configuration management
 - **Comprehensive Testing**: Validation suite to ensure data accuracy
 
@@ -119,6 +120,8 @@ kpi_pipeline/
 │   ├── transform_problems.py     # Problem Management transformations
 │   ├── calculate_kpis.py         # KPI calculation engine
 │   ├── calculate_pm_kpis.py      # Problem Management KPI calculations
+│   ├── geographic_analysis.py    # Geographic analysis by location/country
+│   ├── sdm_analysis.py           # SDM (Service Delivery Manager) analysis
 │   ├── analysis_output.py        # Normalized output tables (intermediate layer)
 │   └── generate_pm_reports.py    # Excel dashboard generation
 ├── tests/

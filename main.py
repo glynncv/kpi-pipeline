@@ -37,6 +37,7 @@ from src import transform
 from src import calculate_kpis
 from src import generate_reports
 from src import geographic_analysis
+from src import sdm_analysis
 from src import analysis_output
 from src.okr_calculator import OKRCalculator
 from src import load_problem_data
@@ -246,6 +247,23 @@ def main():
         print(f"✓ Analyzed {len(geo_results['location_summary'])} locations")
         print(f"✓ Found {geo_results['intervention_summary']['critical_count']} critical locations")
 
+        # Step 5.6: Calculate SDM Analysis
+        print("\n[5.6/7] Calculating SDM analysis...")
+
+        sdm_results = sdm_analysis.analyze_sdm(
+            incidents=incidents,
+            requests=requests if requests is not None else pd.DataFrame(),
+            config=config,
+            problems=problems,
+            okr_config=okr_config
+        )
+
+        if sdm_results['sdm_summary'].empty:
+            print("ℹ No SDM data available (no 'it_operations_manager' column found)")
+        else:
+            print(f"✓ Analyzed {len(sdm_results['sdm_summary'])} SDMs")
+            print(f"✓ Found {sdm_results['intervention_summary']['critical_count']} critical SDMs")
+
         # Step 5.75: Create Normalized Output Tables (Intermediate Layer)
         print("\n[5.75/7] Creating normalized output tables...")
         
@@ -261,7 +279,8 @@ def main():
             incidents=incidents,
             requests=requests if requests is not None else pd.DataFrame(),
             geo_results=geo_results,
-            problems=problems_for_output
+            problems=problems_for_output,
+            sdm_results=sdm_results if not sdm_results['sdm_summary'].empty else None
         )
         print(f"✓ Created {len(output_tables)} normalized tables")
         for table_name, table_df in output_tables.items():
