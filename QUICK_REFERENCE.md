@@ -38,7 +38,7 @@ Example: `data/output/KPI_Report_dev_20251020_120728.xlsx`
 
 ### Update Input Data
 1. Export fresh CSV from ServiceNow
-2. Place in `data/inputs/`
+2. Place in `data/input/`
 3. Run `python main.py`
 
 ### Change KPI Targets
@@ -86,8 +86,8 @@ python -c "from src.config_loader import load_config; config = load_config('conf
 
 | What | Where |
 |------|-------|
-| Input CSVs | `data/inputs/` |
-| Output Excel | `data/outputs/` |
+| Input CSVs | `data/input/` |
+| Output Excel | `data/output/` |
 | Configuration | `config/kpi_config.yaml` |
 | Main script | `main.py` |
 | Source code | `src/*.py` |

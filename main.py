@@ -248,13 +248,20 @@ def main():
 
         # Step 5.75: Create Normalized Output Tables (Intermediate Layer)
         print("\n[5.75/7] Creating normalized output tables...")
+        
+        # Ensure problems DataFrame is available (may have been loaded for geographic analysis)
+        problems_for_output = None
+        if problems is not None:
+            problems_for_output = problems
+        
         output_tables = analysis_output.create_all_output_tables(
             kpi_results=kpi_results,
             okr_results=okr_results,
             action_triggers=action_triggers,
             incidents=incidents,
             requests=requests if requests is not None else pd.DataFrame(),
-            geo_results=geo_results
+            geo_results=geo_results,
+            problems=problems_for_output
         )
         print(f"✓ Created {len(output_tables)} normalized tables")
         for table_name, table_df in output_tables.items():

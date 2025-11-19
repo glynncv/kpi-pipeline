@@ -323,8 +323,10 @@ def test_analyze_geography():
     config = create_test_config()
     incidents = create_test_data()
     requests = None  # Test with incidents only
+    problems = None  # Test without problems
+    okr_config = None  # Test without OKR config
     
-    result = geographic_analysis.analyze_geography(incidents, requests, config)
+    result = geographic_analysis.analyze_geography(incidents, requests, config, problems, okr_config)
     
     print(f"Keys in result: {list(result.keys())}")
     

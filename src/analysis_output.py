@@ -11,7 +11,7 @@ providing structured tables that can be used for multiple output formats:
 """
 
 import pandas as pd
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from datetime import datetime
 
 
@@ -244,6 +244,54 @@ def create_request_detail_table(requests: pd.DataFrame) -> pd.DataFrame:
     return requests[available_columns].copy()
 
 
+def create_problem_detail_table(problems: pd.DataFrame) -> pd.DataFrame:
+    """
+    Create normalized problem detail table for reporting.
+
+    Args:
+        problems: Enriched problem DataFrame with calculated flags
+
+    Returns:
+        DataFrame with key problem attributes for drill-down
+
+    Columns selected for reporting:
+        - number, priority, Priority_Number, state
+        - opened_at, closed_at, Days_Open
+        - Is_Major_Problem, Requires_RCA, RCA_OnTime
+        - country, location (if available)
+    """
+    if problems is None or problems.empty:
+        return pd.DataFrame()
+
+    columns = [
+        'number', 'priority', 'Priority_Number', 'state',
+        'opened_at', 'closed_at', 'Days_Open',
+        'Is_Major_Problem', 'Requires_RCA', 'RCA_OnTime'
+    ]
+
+    # Add location columns if available
+    if 'country' in problems.columns:
+        columns.append('country')
+    elif 'location.country' in problems.columns:
+        columns.append('location.country')
+    
+    if 'location' in problems.columns:
+        columns.append('location')
+    elif 'location.name' in problems.columns:
+        columns.append('location.name')
+    elif 'location.u_site_name' in problems.columns:
+        columns.append('location.u_site_name')
+
+    # Add RCA stage if available
+    if 'rca_stage' in problems.columns:
+        columns.append('rca_stage')
+
+    # Filter to only columns that exist
+    available_columns = [col for col in columns if col in problems.columns]
+
+    return problems[available_columns].copy()
+
+
 def create_geographic_summary_table(geo_results: Dict[str, Any]) -> pd.DataFrame:
     """
     Convert geographic analysis to normalized table.
@@ -266,7 +314,8 @@ def create_all_output_tables(
     action_triggers: Dict[str, list],
     incidents: pd.DataFrame,
     requests: pd.DataFrame,
-    geo_results: Dict[str, Any]
+    geo_results: Dict[str, Any],
+    problems: Optional[pd.DataFrame] = None
 ) -> Dict[str, pd.DataFrame]:
     """
     Generate all normalized output tables from analysis results.
@@ -286,6 +335,7 @@ def create_all_output_tables(
         incidents: Enriched incident DataFrame
         requests: Enriched request DataFrame
         geo_results: Geographic analysis results
+        problems: Enriched problem DataFrame (optional)
 
     Returns:
         Dictionary of normalized DataFrames keyed by table name
@@ -297,6 +347,7 @@ def create_all_output_tables(
         - action_triggers: Required actions
         - incident_detail: Incident-level data
         - request_detail: Request-level data
+        - problem_detail: Problem-level data (if problems provided)
         - geographic_summary: Location-level analysis
     """
     output_tables = {
@@ -308,6 +359,10 @@ def create_all_output_tables(
         'request_detail': create_request_detail_table(requests),
         'geographic_summary': create_geographic_summary_table(geo_results)
     }
+
+    # Add problem detail table if problems data is available
+    if problems is not None:
+        output_tables['problem_detail'] = create_problem_detail_table(problems)
 
     return output_tables
 

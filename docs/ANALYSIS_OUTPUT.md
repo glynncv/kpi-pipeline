@@ -56,7 +56,7 @@ python main.py --save-tables --tables-format json
 
 ## Output Tables
 
-The layer produces 7 normalized tables:
+The layer produces 7-8 normalized tables (problem_detail is optional):
 
 | Table Name | Description | Key Columns |
 |------------|-------------|-------------|
@@ -66,7 +66,8 @@ The layer produces 7 normalized tables:
 | `action_triggers` | Required actions | severity, kr_id, action, escalation |
 | `incident_detail` | Incident drill-down | number, priority, Is_Backlog, Days_Open |
 | `request_detail` | Request drill-down | number, Is_Aged, Days_Open |
-| `geographic_summary` | Location analysis | country, total, backlog_count |
+| `problem_detail` | Problem drill-down (optional) | number, priority, Is_Major_Problem, Requires_RCA, RCA_OnTime |
+| `geographic_summary` | Location analysis (all KPIs/OKRs) | Location, Country, Incident/Request/Problem metrics, OKR scores |
 
 ## File Locations
 
@@ -80,6 +81,7 @@ data/output/tables/
 ├── action_triggers_20251109_143022.parquet
 ├── incident_detail_20251109_143022.parquet
 ├── request_detail_20251109_143022.parquet
+├── problem_detail_20251109_143022.parquet  (optional, if problems data available)
 └── geographic_summary_20251109_143022.parquet
 ```
 
@@ -98,7 +100,8 @@ output_tables = analysis_output.create_all_output_tables(
     action_triggers=action_triggers,
     incidents=incidents,
     requests=requests,
-    geo_results=geo_results
+    geo_results=geo_results,
+    problems=problems  # Optional: include if problem management data available
 )
 ```
 
@@ -119,6 +122,9 @@ incidents_df = analysis_output.create_incident_detail_table(incidents)
 
 # Request details
 requests_df = analysis_output.create_request_detail_table(requests)
+
+# Problem details (optional)
+problems_df = analysis_output.create_problem_detail_table(problems)  # If problems available
 
 # Geographic summary
 geo_df = analysis_output.create_geographic_summary_table(geo_results)
@@ -259,6 +265,24 @@ generate_powerpoint(tables)  # Future capability
 | kr_id | string | Associated Key Result |
 | action | string | Required action description |
 | escalation | string | Escalation path |
+
+### problem_detail Table
+
+| Column | Type | Description |
+|--------|------|-------------|
+| number | string | Problem ticket number |
+| priority | string | Priority level (1 - Critical, 2 - High, etc.) |
+| state | string | Problem state (Open, Closed, etc.) |
+| opened_at | datetime | When problem was opened |
+| closed_at | datetime | When problem was closed (if applicable) |
+| Days_Open | int | Number of days problem has been open |
+| Is_Major_Problem | bool | True if priority 1 or 2 |
+| Requires_RCA | bool | True if RCA is required for this problem |
+| RCA_OnTime | bool | True if RCA was completed on time (if required) |
+| country | string | Country location (if available) |
+| location | string | Location name (if available) |
+
+**Note**: This table is only created when problem management data is available and `RCA001` KPI is enabled.
 
 ## Future Extensions
 

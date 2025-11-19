@@ -20,7 +20,7 @@ This KPI Pipeline automates the calculation of critical service management metri
 
 ### System Features
 - **Weighted Overall Score**: Configurable scoring across all KPIs with performance banding
-- **Geographic Analysis**: Built-in support for country-level filtering and analysis
+- **Geographic Analysis**: Location-level analysis across all KPIs (incidents, requests, problems) and OKRs with volume tiers and intervention priorities
 - **YAML Configuration**: Simple, human-readable configuration management
 - **Comprehensive Testing**: Validation suite to ensure data accuracy
 

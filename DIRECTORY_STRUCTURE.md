@@ -18,12 +18,12 @@ kpi-pipeline/                          ← Root project folder
 │   └── complete_kpi_config.yaml       ✓ From complete-kpi-config-yaml.txt
 │
 ├── data/                              ← Data directory
-│   ├── inputs/                        ← Input CSV files
+│   ├── input/                         ← Input CSV files
 │   │   ├── .gitkeep                   ℹ️ Optional: keeps folder in Git
 │   │   ├── PYTHON EMEA IM (last 90 days)_redacted_clean.csv
 │   │   └── PYTHON EMEA SCT last 90 days_redacted_clean.csv
 │   │
-│   └── outputs/                       ← Generated Excel reports
+│   └── output/                        ← Generated Excel reports
 │       └── .gitkeep                   ℹ️ Optional: keeps folder in Git
 │
 ├── logs/                              ← Log files (optional)
@@ -76,8 +76,8 @@ After copying all files, you should have:
 - [ ] .gitignore
 
 ### Data Files (2 files)
-- [ ] data/inputs/PYTHON EMEA IM (last 90 days)_redacted_clean.csv
-- [ ] data/inputs/PYTHON EMEA SCT last 90 days_redacted_clean.csv
+- [ ] data/input/PYTHON EMEA IM (last 90 days)_redacted_clean.csv
+- [ ] data/input/PYTHON EMEA SCT last 90 days_redacted_clean.csv
 
 **Total**: 19 files (excluding .gitkeep placeholders and venv/)
 
@@ -89,14 +89,14 @@ After copying all files, you should have:
 
 ### Empty Directories to Create
 ```bash
-mkdir -p data/outputs
+mkdir -p data/output
 mkdir -p logs
 ```
 
 ### Optional: Add .gitkeep Files
 ```bash
-touch data/inputs/.gitkeep
-touch data/outputs/.gitkeep
+touch data/input/.gitkeep
+touch data/output/.gitkeep
 touch logs/.gitkeep
 ```
 
@@ -104,8 +104,8 @@ This preserves empty directories in Git.
 
 ### DO NOT Commit
 - `venv/` - Virtual environment (too large, platform-specific)
-- `data/inputs/*.csv` - Sensitive ServiceNow data
-- `data/outputs/*.xlsx` - Generated reports (can be regenerated)
+- `data/input/*.csv` - Sensitive ServiceNow data
+- `data/output/*.xlsx` - Generated reports (can be regenerated)
 - `*.pyc`, `__pycache__/` - Python compiled files
 
 The `.gitignore` file handles this automatically.
@@ -115,10 +115,10 @@ The `.gitignore` file handles this automatically.
 ### Create All Directories
 ```bash
 # Windows
-mkdir src config data\inputs data\outputs logs
+mkdir src config data\input data\output logs
 
 # macOS/Linux
-mkdir -p src config data/inputs data/outputs logs
+mkdir -p src config data/input data/output logs
 ```
 
 ### Verify Structure
