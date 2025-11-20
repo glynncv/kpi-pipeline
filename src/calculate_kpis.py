@@ -16,11 +16,11 @@ except ImportError:
 def calculate_sm001_major_incidents(df: pd.DataFrame, config: Dict[str, Any]) -> Dict[str, Any]:
     """
     Calculate SM001: Major Incidents (P1 & P2).
-    
+
     Args:
         df: Incident DataFrame with calculated flags
         config: Configuration dictionary
-        
+
     Returns:
         Dictionary with KPI results
     """
@@ -63,11 +63,11 @@ def calculate_sm001_major_incidents(df: pd.DataFrame, config: Dict[str, Any]) ->
 def calculate_sm002_backlog(df: pd.DataFrame, config: Dict[str, Any]) -> Dict[str, Any]:
     """
     Calculate SM002/KR4: ServiceNow Backlog.
-    
+
     Args:
         df: Incident DataFrame with calculated flags
         config: Configuration dictionary
-        
+
     Returns:
         Dictionary with KPI results
     """
@@ -108,11 +108,11 @@ def calculate_sm002_backlog(df: pd.DataFrame, config: Dict[str, Any]) -> Dict[st
 def calculate_kr5_request_aging(df: pd.DataFrame, config: Dict[str, Any]) -> Dict[str, Any]:
     """
     Calculate KR5: Service Request Aging.
-    
+
     Args:
         df: Request DataFrame with calculated flags
         config: Configuration dictionary
-        
+
     Returns:
         Dictionary with KPI results
     """
@@ -153,11 +153,11 @@ def calculate_kr5_request_aging(df: pd.DataFrame, config: Dict[str, Any]) -> Dic
 def calculate_sm004_fcr(df: pd.DataFrame, config: Dict[str, Any]) -> Dict[str, Any]:
     """
     Calculate SM004/KR6: First Call Resolution Rate.
-    
+
     Args:
         df: Incident DataFrame with calculated flags
         config: Configuration dictionary
-        
+
     Returns:
         Dictionary with KPI results
     """
@@ -198,11 +198,11 @@ def calculate_sm004_fcr(df: pd.DataFrame, config: Dict[str, Any]) -> Dict[str, A
 def calculate_overall_score(kpi_results: Dict[str, Dict], config: Dict[str, Any]) -> Dict[str, Any]:
     """
     Calculate overall weighted score across all KPIs.
-    
+
     Args:
         kpi_results: Dictionary of individual KPI results
         config: Configuration dictionary
-        
+
     Returns:
         Dictionary with overall score and status
     """
@@ -256,12 +256,12 @@ def calculate_overall_score(kpi_results: Dict[str, Dict], config: Dict[str, Any]
 def calculate_all(incidents: pd.DataFrame, requests: pd.DataFrame, config: Dict[str, Any]) -> Dict[str, Dict]:
     """
     Calculate all enabled KPIs.
-    
+
     Args:
         incidents: Incident DataFrame with calculated flags
         requests: Request DataFrame with calculated flags
         config: Configuration dictionary
-        
+
     Returns:
         Dictionary of all KPI results
     """

@@ -197,14 +197,14 @@ def get_kpi_weights(config: Dict[str, Any]) -> Dict[str, float]:
 # PROBLEM MANAGEMENT HELPER FUNCTIONS
 # ============================================================
 
-def get_problem_column_mapping(config: Dict[str, Any], field_name: str) -> str:
+def get_problem_column_mapping(config: Dict[str, Any], field_name: str) -> Any:
     """
-    Get CSV column name for problem field
-    
+    Get CSV column name for problem field.
+
     Args:
         config: Configuration dictionary
         field_name: Internal field name (e.g., 'u_rca_required')
-        
+
     Returns:
         CSV column name from Problem table export
     """
@@ -213,14 +213,14 @@ def get_problem_column_mapping(config: Dict[str, Any], field_name: str) -> str:
     return problem_data.get(field_name)
 
 
-def get_task_column_mapping(config: Dict[str, Any], field_name: str) -> str:
+def get_task_column_mapping(config: Dict[str, Any], field_name: str) -> Any:
     """
-    Get CSV column name for task field
-    
+    Get CSV column name for task field.
+
     Args:
         config: Configuration dictionary
         field_name: Internal field name (e.g., 'parent_number')
-        
+
     Returns:
         CSV column name from Task/RCA table export
     """
@@ -231,15 +231,15 @@ def get_task_column_mapping(config: Dict[str, Any], field_name: str) -> str:
 
 def get_rca_timeframe(config: Dict[str, Any], priority: int) -> int:
     """
-    Get RCA completion timeframe based on priority
-    
+    Get RCA completion timeframe based on priority.
+
     Args:
         config: Configuration dictionary
         priority: Priority number (1, 2, 3, etc.)
-        
+
     Returns:
-        int: Days allowed for RCA completion
-        
+        Days allowed for RCA completion
+
     Example:
         >>> get_rca_timeframe(config, 1)  # P1
         7
@@ -248,26 +248,26 @@ def get_rca_timeframe(config: Dict[str, Any], priority: int) -> int:
     """
     thresholds = config.get('thresholds', {})
     rca_thresholds = thresholds.get('rca', {})
-    
+
     timeframe_map = {
         1: rca_thresholds.get('p1_rca_timeframe_days', 7),
         2: rca_thresholds.get('p2_rca_timeframe_days', 14),
         3: rca_thresholds.get('p3_rca_timeframe_days', 30)
     }
-    
-    return timeframe_map.get(priority, 30)  # Default to 30 days
+
+    return timeframe_map.get(priority, 30)
 
 
 def get_rca_targets(config: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Get all RCA001 targets
-    
+    Get all RCA001 targets.
+
     Args:
         config: Configuration dictionary
-        
+
     Returns:
-        dict: RCA001 target configuration
-        
+        RCA001 target configuration
+
     Example:
         >>> targets = get_rca_targets(config)
         >>> targets['completion_rate_expected']
@@ -280,13 +280,13 @@ def get_rca_targets(config: Dict[str, Any]) -> Dict[str, Any]:
 
 def get_boolean_processing_config(config: Dict[str, Any]) -> Dict[str, list]:
     """
-    Get boolean field processing configuration (for RCA delivered, etc.)
-    
+    Get boolean field processing configuration (for RCA delivered, etc.).
+
     Args:
         config: Configuration dictionary
-        
+
     Returns:
-        dict: Contains 'true_values', 'false_values', 'null_values' lists
+        Dictionary with 'true_values', 'false_values', 'null_values' lists
     """
     processing = config.get('processing', {})
     return processing.get('boolean_processing', {})
@@ -294,26 +294,42 @@ def get_boolean_processing_config(config: Dict[str, Any]) -> Dict[str, list]:
 
 def get_rca_stage_config(config: Dict[str, Any]) -> Dict[str, list]:
     """
-    Get RCA stage processing configuration
-    
+    Get RCA stage processing configuration.
+
     Args:
         config: Configuration dictionary
-        
+
     Returns:
-        dict: Stage classifications (completed, ontime, late, etc.)
+        Stage classifications (completed, ontime, late, etc.)
     """
     processing = config.get('processing', {})
     return processing.get('rca_stage_processing', {})
 
 
 def get_problem_filename(config: Dict[str, Any]) -> str:
-    """Get expected problem CSV filename"""
+    """
+    Get expected problem CSV filename.
+
+    Args:
+        config: Configuration dictionary
+
+    Returns:
+        Problem CSV filename
+    """
     data_files = config.get('data_files', {})
     return data_files.get('problem_file', 'PYTHON_EMEA_PM_P1P2__This_Year_.csv')
 
 
 def get_task_filename(config: Dict[str, Any]) -> str:
-    """Get expected task/RCA CSV filename"""
+    """
+    Get expected task/RCA CSV filename.
+
+    Args:
+        config: Configuration dictionary
+
+    Returns:
+        Task/RCA CSV filename
+    """
     data_files = config.get('data_files', {})
     return data_files.get('task_file', 'PYTHON_EMEA_TASK_RCA__This_Year_.csv')
 
