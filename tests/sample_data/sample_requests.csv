@@ -1,0 +1,51 @@
+number,state,opened_at,location_country,contact_type,u_resolved,assignment_group,category
+REQ0002000,Closed,2025-10-24 14:05:50,Netherlands,Phone,,Business Support,Provisioning
+REQ0002001,Closed,2025-09-17 14:05:50,Italy,Email,,Business Support,Information
+REQ0002002,Closed,2025-08-21 14:05:50,France,Phone,2025-08-30 20:05:50,IT Support,Access Request
+REQ0002003,Pending,2025-09-22 14:05:50,Spain,Email,,Service Desk,Account
+REQ0002004,Pending,2025-10-14 14:05:50,UK,Walk-in,2025-11-14 21:05:50,Business Support,Provisioning
+REQ0002005,Closed,2025-08-24 14:05:50,UK,Email,2025-08-27 08:05:50,IT Support,Access Request
+REQ0002006,In Progress,2025-10-12 14:05:50,Germany,Walk-in,2025-11-25 14:05:50,Service Desk,Provisioning
+REQ0002007,Closed,2025-11-08 14:05:50,Netherlands,Walk-in,2025-11-26 19:05:50,Business Support,Account
+REQ0002008,Pending,2025-08-31 14:05:50,France,Walk-in,2025-09-18 15:05:50,Business Support,Information
+REQ0002009,Closed,2025-08-28 14:05:50,Italy,Self-service,2025-09-24 09:05:50,IT Support,Access Request
+REQ0002010,Closed,2025-11-05 14:05:50,Italy,Self-service,,Service Desk,Information
+REQ0002011,In Progress,2025-09-25 14:05:50,UK,Self-service,,IT Support,Access Request
+REQ0002012,Pending,2025-10-23 14:05:50,Italy,Self-service,2025-11-25 05:05:50,Service Desk,Provisioning
+REQ0002013,Pending,2025-11-04 14:05:50,Netherlands,Self-service,2025-12-10 15:05:50,IT Support,Account
+REQ0002014,Closed,2025-10-04 14:05:50,France,Email,2025-10-24 23:05:50,IT Support,Access Request
+REQ0002015,Closed,2025-08-20 14:05:50,Netherlands,Walk-in,2025-09-01 14:05:50,IT Support,Information
+REQ0002016,Resolved,2025-10-18 14:05:50,UK,Phone,,Business Support,Access Request
+REQ0002017,Closed,2025-09-09 14:05:50,Spain,Phone,2025-09-17 15:05:50,IT Support,Provisioning
+REQ0002018,Closed,2025-09-25 14:05:50,Netherlands,Walk-in,2025-10-09 17:05:50,Business Support,Provisioning
+REQ0002019,Closed,2025-11-13 14:05:50,Spain,Phone,,IT Support,Access Request
+REQ0002020,Closed,2025-09-24 14:05:50,Germany,Email,2025-10-22 02:05:50,Business Support,Account
+REQ0002021,Pending,2025-08-20 14:05:50,Netherlands,Walk-in,2025-10-03 09:05:50,Business Support,Provisioning
+REQ0002022,Closed,2025-09-12 14:05:50,UK,Walk-in,2025-10-03 22:05:50,Business Support,Account
+REQ0002023,Closed,2025-09-19 14:05:50,UK,Email,2025-10-11 22:05:50,Business Support,Provisioning
+REQ0002024,Closed,2025-11-12 14:05:50,Italy,Email,2025-12-18 19:05:50,IT Support,Provisioning
+REQ0002025,Pending,2025-10-23 14:05:50,Germany,Self-service,,Business Support,Access Request
+REQ0002026,Closed,2025-09-13 14:05:50,Germany,Email,2025-09-26 17:05:50,IT Support,Provisioning
+REQ0002027,Resolved,2025-11-01 14:05:50,UK,Self-service,2025-11-04 05:05:50,IT Support,Information
+REQ0002028,In Progress,2025-10-06 14:05:50,Netherlands,Phone,2025-10-13 10:05:50,Business Support,Provisioning
+REQ0002029,Closed,2025-09-25 14:05:50,France,Self-service,2025-10-30 14:05:50,Service Desk,Account
+REQ0002030,Resolved,2025-08-26 14:05:50,Netherlands,Walk-in,2025-09-18 08:05:50,Service Desk,Account
+REQ0002031,Closed,2025-08-30 14:05:50,Netherlands,Email,,Service Desk,Provisioning
+REQ0002032,Closed,2025-10-18 14:05:50,Germany,Self-service,2025-10-22 07:05:50,Service Desk,Information
+REQ0002033,Resolved,2025-09-03 14:05:50,Germany,Email,2025-10-17 07:05:50,IT Support,Provisioning
+REQ0002034,Closed,2025-11-08 14:05:50,Netherlands,Phone,,Business Support,Account
+REQ0002035,Closed,2025-11-14 14:05:50,France,Email,2025-12-15 07:05:50,Business Support,Information
+REQ0002036,In Progress,2025-09-17 14:05:50,Netherlands,Phone,,Service Desk,Provisioning
+REQ0002037,Pending,2025-10-27 14:05:50,Netherlands,Email,2025-12-06 15:05:50,Business Support,Access Request
+REQ0002038,Closed,2025-09-22 14:05:50,UK,Self-service,2025-11-04 08:05:50,Business Support,Access Request
+REQ0002039,Closed,2025-10-02 14:05:50,France,Phone,2025-11-11 20:05:50,Service Desk,Access Request
+REQ0002040,Pending,2025-08-24 14:05:50,Netherlands,Phone,2025-10-01 17:05:50,Service Desk,Information
+REQ0002041,Pending,2025-09-12 14:05:50,UK,Self-service,2025-10-01 01:05:50,IT Support,Information
+REQ0002042,Pending,2025-10-02 14:05:50,Spain,Phone,2025-10-04 00:05:50,IT Support,Account
+REQ0002043,Closed,2025-11-16 14:05:50,Netherlands,Phone,2025-12-03 19:05:50,IT Support,Access Request
+REQ0002044,Closed,2025-10-31 14:05:50,Italy,Phone,2025-11-25 06:05:50,IT Support,Provisioning
+REQ0002045,Closed,2025-11-09 14:05:50,Germany,Self-service,2025-12-08 01:05:50,Service Desk,Information
+REQ0002046,Closed,2025-09-03 14:05:50,Spain,Walk-in,2025-09-28 19:05:50,Service Desk,Provisioning
+REQ0002047,Closed,2025-08-19 14:05:50,Germany,Phone,2025-08-29 11:05:50,Service Desk,Information
+REQ0002048,Closed,2025-10-04 14:05:50,Italy,Self-service,2025-10-06 05:05:50,Service Desk,Access Request
+REQ0002049,Resolved,2025-11-04 14:05:50,Germany,Email,2025-11-15 04:05:50,Service Desk,Access Request
