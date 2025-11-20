@@ -85,6 +85,22 @@ chmod +x setup.sh
    - **KPI Report**: `data/output/KPI_Report_{env}_{timestamp}.xlsx`
    - **PM Dashboard**: `data/output/PM_Dashboard_{timestamp}.xlsx` (if PM data available)
 
+### Advanced Usage
+
+```bash
+# Use development environment (smaller test data)
+python main.py --env dev
+
+# Save normalized output tables for auditing
+python main.py --save-tables
+
+# Save tables as CSV instead of Parquet
+python main.py --save-tables --tables-format csv
+
+# Override input files
+python main.py --incidents custom_incidents.csv --requests custom_requests.csv
+```
+
 ## 📁 Project Structure
 
 ```
@@ -107,6 +123,7 @@ kpi_pipeline/
 │   ├── transform_problems.py     # Problem Management transformations
 │   ├── calculate_kpis.py         # KPI calculation engine
 │   ├── calculate_pm_kpis.py      # Problem Management KPI calculations
+│   ├── analysis_output.py        # Normalized output tables (intermediate layer)
 │   └── generate_pm_reports.py    # Excel dashboard generation
 ├── tests/
 │   ├── sample_data/              # Generated sample data for testing
@@ -116,6 +133,7 @@ kpi_pipeline/
 │   ├── QUICKSTART.md             # 5-minute getting started guide
 │   ├── TECHNICAL.md              # Technical architecture details
 │   ├── CONFIGURATION.md          # Configuration guide
+│   ├── ANALYSIS_OUTPUT.md        # Analysis output layer documentation
 │   ├── TROUBLESHOOTING.md        # Common issues and solutions
 │   ├── MAINTENANCE.md            # Maintenance and updates
 │   ├── HANDOFF.md                # Project handoff documentation
@@ -192,6 +210,7 @@ Validates:
 - 📘 [Quick Start Guide](docs/QUICKSTART.md) - Get running in 5 minutes
 - 🔧 [Technical Documentation](docs/TECHNICAL.md) - Architecture and implementation details
 - ⚙️ [Configuration Guide](docs/CONFIGURATION.md) - Customize KPIs and thresholds
+- 📊 [Analysis Output](docs/ANALYSIS_OUTPUT.md) - Normalized output tables and archiving
 - 🔍 [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues and solutions
 - 🛠️ [Maintenance Guide](docs/MAINTENANCE.md) - Regular maintenance tasks
 - 📋 [Handoff Documentation](docs/HANDOFF.md) - Project transfer information

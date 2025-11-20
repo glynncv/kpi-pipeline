@@ -7,19 +7,25 @@ This script runs the complete KPI pipeline:
 3. Transforms data (adds calculated fields)
 4. Calculates KPIs
 5. Calculates OKR scores
-6. Processes Problem Management data (if enabled and available)
-7. Displays results
-8. Generates Excel reports (KPI Report and PM Dashboard)
+5.5. Calculates geographic analysis
+5.6. Processes Problem Management data (if enabled and available)
+5.75. Creates normalized output tables (intermediate layer)
+5.8. Saves output tables (optional - physical layer)
+6. Displays results
+7. Generates Excel reports (KPI Report and PM Dashboard)
 
 Usage:
     python main.py                              # Use prod environment (default)
     python main.py --env dev                    # Use dev environment (small test data)
     python main.py --incidents path/to/file.csv # Override incidents file
     python main.py --requests path/to/file.csv  # Override requests file
+    python main.py --save-tables                # Save normalized output tables
+    python main.py --save-tables --tables-format csv  # Save as CSV instead of parquet
 
 Output Files:
     - data/output/KPI_Report_{env}_{timestamp}.xlsx
     - data/output/PM_Dashboard_{timestamp}.xlsx (if PM data available)
+    - data/output/tables/*.parquet (if --save-tables enabled)
 """
 
 import sys
@@ -41,6 +47,7 @@ from src import transform
 from src import calculate_kpis
 from src import generate_reports
 from src import geographic_analysis
+from src import analysis_output
 from src.okr_calculator import OKRCalculator
 from src import load_problem_data
 from src import transform_problems
@@ -89,7 +96,20 @@ Examples:
         default='config/kpi_config.yaml',
         help='Path to KPI config file (default: config/kpi_config.yaml)'
     )
-    
+
+    parser.add_argument(
+        '--save-tables',
+        action='store_true',
+        help='Save normalized output tables to data/output/tables/ for archiving'
+    )
+
+    parser.add_argument(
+        '--tables-format',
+        choices=['parquet', 'csv', 'json'],
+        default='parquet',
+        help='Format for saved tables (default: parquet)'
+    )
+
     return parser.parse_args()
 
 
@@ -210,33 +230,34 @@ def main():
         )
         print(f"✓ Analyzed {len(geo_results['location_summary'])} locations")
         print(f"✓ Found {geo_results['intervention_summary']['critical_count']} critical locations")
-        
+
         # Step 5.6: Process Problem Management (if enabled and data available)
         pm_report_path = None
+        problems = None
         if config.get('kpis', {}).get('RCA001', {}).get('enabled', False):
             print("\n[5.6/8] Processing Problem Management data...")
             try:
                 # Try to load PM data
                 problems, tasks = load_problem_data.load_all_problem_data(
-                    config['data_sources']['environments'][env]['input_directory'], 
+                    config['data_sources']['environments'][env]['input_directory'],
                     config
                 )
-                
+
                 if problems is not None and tasks is not None:
                     # Transform PM data
                     transformed_pm = transform_problems.transform_all_problem_data(problems, tasks)
                     print(f"✓ Transformed {len(transformed_pm)} problems")
-                    
+
                     # Calculate PM KPIs
                     pm_kpis = calculate_pm_kpis.calculate_all_pm_kpis(transformed_pm, config)
                     rca = pm_kpis['RCA001']
-                    
+
                     print(f"✓ RCA001 Completion Rate: {rca['completion_rate']:.1f}%")
                     print(f"✓ Status: {rca['status']}")
-                    
+
                     # Generate PM dashboard
                     pm_report_path = generate_pm_reports.export_pm_dashboard(
-                        pm_kpis, 
+                        pm_kpis,
                         transformed_pm,
                         output_dir=output_dir
                     )
@@ -246,7 +267,42 @@ def main():
             except Exception as pm_error:
                 print(f"ℹ Problem Management processing skipped: {pm_error}")
                 # Don't fail the whole pipeline if PM data is missing
-        
+
+        # Step 5.75: Create Normalized Output Tables (Intermediate Layer)
+        print("\n[5.75/8] Creating normalized output tables...")
+
+        # Ensure problems DataFrame is available for output tables
+        problems_for_output = None
+        if problems is not None:
+            problems_for_output = problems
+
+        output_tables = analysis_output.create_all_output_tables(
+            kpi_results=kpi_results,
+            okr_results=okr_results,
+            action_triggers=action_triggers,
+            incidents=incidents,
+            requests=requests if requests is not None else pd.DataFrame(),
+            geo_results=geo_results,
+            problems=problems_for_output
+        )
+        print(f"✓ Created {len(output_tables)} normalized tables")
+        for table_name, table_df in output_tables.items():
+            if not table_df.empty:
+                print(f"  - {table_name}: {len(table_df)} rows, {len(table_df.columns)} columns")
+
+        # Step 5.8: Save Output Tables (Optional - Physical Layer)
+        if args.save_tables:
+            print(f"\n[5.8/8] Saving output tables ({args.tables_format} format)...")
+            saved_files = analysis_output.save_output_tables(
+                output_tables,
+                output_dir='data/output/tables',
+                format=args.tables_format
+            )
+            print(f"✓ Saved {len(saved_files)} tables to data/output/tables/")
+            for table_name, filepath in saved_files.items():
+                print(f"  - {filepath}")
+
+
         # Step 6: Display Results
         print("\n[6/8] Results:")
         print("\n" + "="*70)
