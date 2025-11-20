@@ -7,12 +7,14 @@ This script runs the complete KPI pipeline:
 3. Transforms data (adds calculated fields)
 4. Calculates KPIs
 5. Calculates OKR scores
-5.5. Calculates geographic analysis
-5.6. Processes Problem Management data (if enabled and available)
+5.5. Calculates geographic analysis (with OKR scores per location)
+5.6. Processes Problem Management KPIs and generates PM Dashboard
+5.7. Calculates SDM analysis (with OKR scores per SDM)
 5.75. Creates normalized output tables (intermediate layer)
-5.8. Saves output tables (optional - physical layer)
+5.8. Saves output tables to disk (optional - physical layer)
 6. Displays results
-7. Generates Excel reports (KPI Report and PM Dashboard)
+7. Generates Excel KPI Report
+8. Summary and completion
 
 Usage:
     python main.py                              # Use prod environment (default)
