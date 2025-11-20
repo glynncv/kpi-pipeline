@@ -34,7 +34,7 @@ def test_config_loading():
         assert 'kpis' in config, "Missing 'kpis' section"
         assert 'column_mappings' in config, "Missing 'column_mappings' section"
         
-        print("✓ Configuration loaded successfully")
+        print("[OK] Configuration loaded successfully")
         print(f"  Organization: {config['metadata']['organization']}")
         print(f"  Version: {config['metadata']['version']}")
         print(f"  KPIs configured: {len([k for k in config['kpis'] if config['kpis'][k]['enabled']])}")
@@ -42,7 +42,7 @@ def test_config_loading():
         return True, config
         
     except Exception as e:
-        print(f"✗ Configuration loading failed: {e}")
+        print(f"[ERROR] Configuration loading failed: {e}")
         return False, None
 
 
@@ -61,11 +61,11 @@ def test_data_loading(config):
             incidents_path = sample_incident_path
         else:
             incidents_path = 'data/input/PYTHON EMEA IM (last 90 days)_redacted_clean.csv'
-            print("  ℹ Using real incident data (sample data not found)")
+            print("  [INFO] Using real incident data (sample data not found)")
         
         # Load incidents
         incidents = load_data.load_incidents(incidents_path, config)
-        print(f"✓ Loaded {len(incidents)} incidents")
+        print(f"[OK] Loaded {len(incidents)} incidents")
         
         # Validate required columns
         required_cols = ['number', 'priority', 'opened_at']
@@ -80,15 +80,15 @@ def test_data_loading(config):
                 requests_path = sample_request_path
             else:
                 requests_path = 'data/input/PYTHON EMEA SCT (last 90 days)_redacted_clean.csv'
-                print("  ℹ Using real request data (sample data not found)")
+                print("  [INFO] Using real request data (sample data not found)")
             
             requests = load_data.load_requests(requests_path, config)
-            print(f"✓ Loaded {len(requests)} requests")
+            print(f"[OK] Loaded {len(requests)} requests")
         
         return True, incidents, requests
         
     except Exception as e:
-        print(f"✗ Data loading failed: {e}")
+        print(f"[ERROR] Data loading failed: {e}")
         import traceback
         traceback.print_exc()
         return False, None, None
@@ -103,28 +103,28 @@ def test_data_transformation(incidents, requests, config):
     try:
         # Transform incidents
         incidents_transformed = transform.add_incident_flags(incidents.copy(), config)
-        print(f"✓ Transformed incidents")
+        print(f"[OK] Transformed incidents")
         
         # Check for added columns
         expected_flags = ['is_major_incident', 'is_backlog', 'age_days']
         for flag in expected_flags:
             if flag in incidents_transformed.columns:
-                print(f"  ✓ Added column: {flag}")
+                print(f"  [OK] Added column: {flag}")
         
         # Transform requests if available
         if requests is not None:
             requests_transformed = transform.add_request_flags(requests.copy(), config)
-            print(f"✓ Transformed requests")
+            print(f"[OK] Transformed requests")
             
             if 'is_aged' in requests_transformed.columns:
-                print(f"  ✓ Added column: is_aged")
+                print(f"  [OK] Added column: is_aged")
         else:
             requests_transformed = None
         
         return True, incidents_transformed, requests_transformed
         
     except Exception as e:
-        print(f"✗ Data transformation failed: {e}")
+        print(f"[ERROR] Data transformation failed: {e}")
         import traceback
         traceback.print_exc()
         return False, None, None
@@ -139,7 +139,7 @@ def test_kpi_calculations(incidents, requests, config):
     try:
         kpi_results = calculate_kpis.calculate_all(incidents, requests, config)
         
-        print(f"✓ Calculated KPIs")
+        print(f"[OK] Calculated KPIs")
         print(f"\nKPI Results:")
         print("-" * 70)
         
@@ -153,21 +153,22 @@ def test_kpi_calculations(incidents, requests, config):
                 print(f"  Status: {kpi_data['Status']}")
                 print(f"  Adherence: {kpi_data['Adherence_Rate']}%")
                 print(f"  Business Impact: {kpi_data['Business_Impact']}")
-        
+
         # Validate expected KPIs (using actual keys returned by calculate_all)
+        # Note: Some KPIs use compound keys (e.g., "SM002/KR4") when they're also Key Results
         expected_kpis = ['SM001', 'SM002/KR4', 'SM004/KR6', 'OVERALL']
         if config['kpis']['SM003']['enabled']:
             expected_kpis.insert(2, 'SM003/KR5')
         
         for kpi in expected_kpis:
-            assert kpi in kpi_results, f"Missing expected KPI: {kpi}"
+            assert kpi in kpi_results, f"Missing expected KPI: {kpi}. Found keys: {list(kpi_results.keys())}"
         
-        print(f"\n✓ All expected KPIs present")
+        print(f"\n[OK] All expected KPIs present")
         
         return True, kpi_results
         
     except Exception as e:
-        print(f"✗ KPI calculation failed: {e}")
+        print(f"[ERROR] KPI calculation failed: {e}")
         import traceback
         traceback.print_exc()
         return False, None
@@ -183,25 +184,25 @@ def test_expected_results():
 Expected KPI Values (from Power Query validation):
 
 SM001 - Major Incident Management:
-  - P1 Incidents: Should be ≤ target
-  - P2 Incidents: Should be ≤ target
-  - Target adherence: ≥ 95%
+  - P1 Incidents: Should be <= target
+  - P2 Incidents: Should be <= target
+  - Target adherence: >= 95%
 
 SM002 - Backlog Management:
   - Incidents aged > 10 days
-  - Target adherence: ≥ 95%
+  - Target adherence: >= 95%
 
 SM003 - Request Aging (if enabled):
   - Requests aged > 30 days
-  - Target adherence: ≥ 95%
+  - Target adherence: >= 95%
 
 SM004 - First Contact Resolution:
   - FCR rate calculation
-  - Target: ≥ 70%
+  - Target: >= 70%
 
 OVERALL:
   - Weighted score from all KPIs
-  - Excellent: ≥ 90%
+  - Excellent: >= 90%
   - Good: 80-89%
   - Needs Improvement: < 80%
 
@@ -258,16 +259,16 @@ def run_all_tests():
     total = len(results)
     
     for test_name, passed_test in results.items():
-        status = "✓ PASSED" if passed_test else "✗ FAILED"
+        status = "[PASSED]" if passed_test else "[FAILED]"
         print(f"{test_name.replace('_', ' ').title()}: {status}")
     
     print("-" * 70)
     print(f"Total: {passed}/{total} tests passed")
     
     if passed == total:
-        print("\n✓ ALL TESTS PASSED!")
+        print("\n[OK] ALL TESTS PASSED!")
     else:
-        print(f"\n✗ {total - passed} TEST(S) FAILED")
+        print(f"\n[ERROR] {total - passed} TEST(S) FAILED")
     
     print("="*70)
     

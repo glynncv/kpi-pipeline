@@ -22,7 +22,7 @@ python main.py
 
 **Output:**
 - Service Management KPI report: `data/output/KPI_Report_[timestamp].xlsx`
-- Problem Management dashboard: `output/PM_Dashboard_[date].xlsx` (if PM data available)
+- Problem Management dashboard: `data/output/PM_Dashboard_[date].xlsx` (if PM data available)
 
 ## Option 2: Run Problem Management Only
 
@@ -180,7 +180,7 @@ RCA001 Results:
 ```
 
 ### Excel Dashboard
-Location: `output/PM_Dashboard_YYYY-MM-DD.xlsx`
+Location: `data/output/PM_Dashboard_YYYY-MM-DD.xlsx`
 
 **Sheets:**
 1. **Summary** - KPI overview with completion rate, status, and breakdown

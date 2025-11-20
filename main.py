@@ -7,12 +7,14 @@ This script runs the complete KPI pipeline:
 3. Transforms data (adds calculated fields)
 4. Calculates KPIs
 5. Calculates OKR scores
-5.5. Calculates geographic analysis
-5.6. Processes Problem Management data (if enabled and available)
+5.5. Calculates geographic analysis (with OKR scores per location)
+5.6. Processes Problem Management KPIs and generates PM Dashboard
+5.7. Calculates SDM analysis (with OKR scores per SDM)
 5.75. Creates normalized output tables (intermediate layer)
-5.8. Saves output tables (optional - physical layer)
+5.8. Saves output tables to disk (optional - physical layer)
 6. Displays results
-7. Generates Excel reports (KPI Report and PM Dashboard)
+7. Generates Excel KPI Report
+8. Summary and completion
 
 Usage:
     python main.py                              # Use prod environment (default)
@@ -47,6 +49,7 @@ from src import transform
 from src import calculate_kpis
 from src import generate_reports
 from src import geographic_analysis
+from src import sdm_analysis
 from src import analysis_output
 from src.okr_calculator import OKRCalculator
 from src import load_problem_data
@@ -139,22 +142,25 @@ def get_data_file_paths(config, args):
     if args.input_dir:
         input_dir = args.input_dir
     
+    # Normalize input directory path (handles forward/backward slashes)
+    input_dir = str(Path(input_dir))
+    
     if args.incidents:
         # If absolute path or contains directory separator, use as-is
         if Path(args.incidents).is_absolute() or os.sep in args.incidents:
-            incidents_path = args.incidents
+            incidents_path = str(Path(args.incidents))
         else:
-            incidents_path = os.path.join(input_dir, args.incidents)
+            incidents_path = str(Path(input_dir) / args.incidents)
     else:
-        incidents_path = os.path.join(input_dir, incidents_file)
+        incidents_path = str(Path(input_dir) / incidents_file)
     
     if args.requests:
         if Path(args.requests).is_absolute() or os.sep in args.requests:
-            requests_path = args.requests
+            requests_path = str(Path(args.requests))
         else:
-            requests_path = os.path.join(input_dir, args.requests)
+            requests_path = str(Path(input_dir) / args.requests)
     else:
-        requests_path = os.path.join(input_dir, requests_file)
+        requests_path = str(Path(input_dir) / requests_file)
     
     return incidents_path, requests_path, env
 
@@ -223,50 +229,76 @@ def main():
         
         # Step 5.5: Calculate Geographic Analysis
         print("\n[5.5/8] Calculating geographic analysis...")
+
+        # Load problem data if available (for PM KPIs in geographic analysis)
+        problems = None
+        if config['kpis'].get('RCA001', {}).get('enabled', False):
+            try:
+                problems_raw, tasks_raw = load_problem_data.load_all_problem_data(
+                    'data/input', config
+                )
+                if problems_raw is not None and tasks_raw is not None:
+                    problems = transform_problems.transform_all_problem_data(problems_raw, tasks_raw)
+                    print(f"✓ Loaded {len(problems)} problems for geographic analysis")
+            except Exception as e:
+                print(f"ℹ Problem data not available for geographic analysis: {e}")
+                problems = None
+
+        # Load OKR config for geographic OKR scores
+        okr_config = None
+        try:
+            okr_config = config_loader.load_okr_config('config/okr_config.yaml')
+        except Exception as e:
+            print(f"ℹ OKR config not available: {e}")
+
         geo_results = geographic_analysis.analyze_geography(
             incidents=incidents,
             requests=requests if requests is not None else pd.DataFrame(),
-            config=config
+            config=config,
+            problems=problems,
+            okr_config=okr_config
         )
         print(f"✓ Analyzed {len(geo_results['location_summary'])} locations")
         print(f"✓ Found {geo_results['intervention_summary']['critical_count']} critical locations")
 
         # Step 5.6: Process Problem Management (if enabled and data available)
         pm_report_path = None
-        problems = None
-        if config.get('kpis', {}).get('RCA001', {}).get('enabled', False):
-            print("\n[5.6/8] Processing Problem Management data...")
+        if config.get('kpis', {}).get('RCA001', {}).get('enabled', False) and problems is not None:
+            print("\n[5.6/8] Processing Problem Management KPIs...")
             try:
-                # Try to load PM data
-                problems, tasks = load_problem_data.load_all_problem_data(
-                    config['data_sources']['environments'][env]['input_directory'],
-                    config
+                # Calculate PM KPIs using problems already loaded in Step 5.5
+                pm_kpis = calculate_pm_kpis.calculate_all_pm_kpis(problems, config)
+                rca = pm_kpis['RCA001']
+
+                print(f"✓ RCA001 Completion Rate: {rca['completion_rate']:.1f}%")
+                print(f"✓ Status: {rca['status']}")
+
+                # Generate PM dashboard
+                pm_report_path = generate_pm_reports.export_pm_dashboard(
+                    pm_kpis,
+                    problems,
+                    output_dir=output_dir
                 )
-
-                if problems is not None and tasks is not None:
-                    # Transform PM data
-                    transformed_pm = transform_problems.transform_all_problem_data(problems, tasks)
-                    print(f"✓ Transformed {len(transformed_pm)} problems")
-
-                    # Calculate PM KPIs
-                    pm_kpis = calculate_pm_kpis.calculate_all_pm_kpis(transformed_pm, config)
-                    rca = pm_kpis['RCA001']
-
-                    print(f"✓ RCA001 Completion Rate: {rca['completion_rate']:.1f}%")
-                    print(f"✓ Status: {rca['status']}")
-
-                    # Generate PM dashboard
-                    pm_report_path = generate_pm_reports.export_pm_dashboard(
-                        pm_kpis,
-                        transformed_pm,
-                        output_dir=output_dir
-                    )
-                    print(f"✓ PM Dashboard saved to: {pm_report_path}")
-                else:
-                    print("ℹ Problem Management data files not found - skipping PM report")
+                print(f"✓ PM Dashboard saved to: {pm_report_path}")
             except Exception as pm_error:
                 print(f"ℹ Problem Management processing skipped: {pm_error}")
-                # Don't fail the whole pipeline if PM data is missing
+
+        # Step 5.7: Calculate SDM Analysis
+        print("\n[5.7/8] Calculating SDM analysis...")
+
+        sdm_results = sdm_analysis.analyze_sdm(
+            incidents=incidents,
+            requests=requests if requests is not None else pd.DataFrame(),
+            config=config,
+            problems=problems,
+            okr_config=okr_config
+        )
+
+        if sdm_results['sdm_summary'].empty:
+            print("ℹ No SDM data available (no 'it_operations_manager' column found)")
+        else:
+            print(f"✓ Analyzed {len(sdm_results['sdm_summary'])} SDMs")
+            print(f"✓ Found {sdm_results['intervention_summary']['critical_count']} critical SDMs")
 
         # Step 5.75: Create Normalized Output Tables (Intermediate Layer)
         print("\n[5.75/8] Creating normalized output tables...")
@@ -276,6 +308,7 @@ def main():
         if problems is not None:
             problems_for_output = problems
 
+
         output_tables = analysis_output.create_all_output_tables(
             kpi_results=kpi_results,
             okr_results=okr_results,
@@ -283,7 +316,8 @@ def main():
             incidents=incidents,
             requests=requests if requests is not None else pd.DataFrame(),
             geo_results=geo_results,
-            problems=problems_for_output
+            problems=problems_for_output,
+            sdm_results=sdm_results if not sdm_results['sdm_summary'].empty else None
         )
         print(f"✓ Created {len(output_tables)} normalized tables")
         for table_name, table_df in output_tables.items():

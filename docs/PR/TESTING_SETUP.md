@@ -110,7 +110,7 @@ python -c "from src import config_loader, load_problem_data, transform_problems,
 [INFO] Creating Detail sheet...
 [OK] Detail sheet created with X problems
 [OK] Dashboard created successfully!
-Dashboard created: output/PM_Dashboard_2025-11-04.xlsx
+Dashboard created: data/output/PM_Dashboard_2025-11-04.xlsx
 ```
 
 ## Troubleshooting
@@ -156,7 +156,7 @@ Based on Session 3 testing with EMEA data:
 
 Once files are in place and tests pass:
 1. Run the full pipeline: `python main.py`
-2. Check output: `output/PM_Dashboard_YYYY-MM-DD.xlsx`
+2. Check output: `data/output/PM_Dashboard_YYYY-MM-DD.xlsx`
 3. Review KPI summary and problem details sheets
 
 ---
