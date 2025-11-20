@@ -45,6 +45,9 @@ data/output/*.xlsx
 data/output/*.csv
 *.log
 
+# Validation test results
+validation_results.json
+
 # Development/experimental files
 dev_spec/
 test_integration*.py

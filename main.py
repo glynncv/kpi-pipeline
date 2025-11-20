@@ -7,15 +7,25 @@ This script runs the complete KPI pipeline:
 3. Transforms data (adds calculated fields)
 4. Calculates KPIs
 5. Calculates OKR scores
-5.5. Creates normalized output tables (intermediate layer)
+5.5. Calculates geographic analysis
+5.6. Processes Problem Management data (if enabled and available)
+5.75. Creates normalized output tables (intermediate layer)
+5.8. Saves output tables (optional - physical layer)
 6. Displays results
-7. Generates Excel report
+7. Generates Excel reports (KPI Report and PM Dashboard)
 
 Usage:
     python main.py                              # Use prod environment (default)
     python main.py --env dev                    # Use dev environment (small test data)
     python main.py --incidents path/to/file.csv # Override incidents file
     python main.py --requests path/to/file.csv  # Override requests file
+    python main.py --save-tables                # Save normalized output tables
+    python main.py --save-tables --tables-format csv  # Save as CSV instead of parquet
+
+Output Files:
+    - data/output/KPI_Report_{env}_{timestamp}.xlsx
+    - data/output/PM_Dashboard_{timestamp}.xlsx (if PM data available)
+    - data/output/tables/*.parquet (if --save-tables enabled)
 """
 
 import sys
@@ -39,6 +49,10 @@ from src import generate_reports
 from src import geographic_analysis
 from src import analysis_output
 from src.okr_calculator import OKRCalculator
+from src import load_problem_data
+from src import transform_problems
+from src import calculate_pm_kpis
+from src import generate_pm_reports
 
 
 def parse_arguments():
@@ -158,7 +172,7 @@ def main():
     
     try:
         # Step 1: Load Configuration
-        print("[1/7] Loading configuration...")
+        print("[1/8] Loading configuration...")
         config = config_loader.load_all_configs(args.config, 'config/okr_config.yaml')
         print(f"✓ Configuration loaded: {config['metadata']['organization']}")
         
@@ -170,7 +184,7 @@ def main():
         print(f"✓ Environment: {env} ({env_desc})")
         
         # Step 2: Load Data
-        print("\n[2/7] Loading data files...")
+        print("\n[2/8] Loading data files...")
         print(f"  Incidents: {incidents_path}")
         incidents = load_data.load_incidents(incidents_path, config)
         print(f"✓ Loaded {len(incidents)} incidents")
@@ -184,7 +198,7 @@ def main():
             print("ℹ Request aging (SM003) disabled - skipping request data")
         
         # Step 3: Transform Data
-        print("\n[3/7] Transforming data (adding calculated fields)...")
+        print("\n[3/8] Transforming data (adding calculated fields)...")
         incidents = transform.add_incident_flags(incidents, config)
         print(f"✓ Added incident flags")
         
@@ -193,12 +207,12 @@ def main():
             print(f"✓ Added request flags")
         
         # Step 4: Calculate KPIs
-        print("\n[4/7] Calculating KPIs...")
+        print("\n[4/8] Calculating KPIs...")
         kpi_results = calculate_kpis.calculate_all(incidents, requests, config)
         print(f"✓ Calculated {len(kpi_results)-1} KPIs + overall score")
         
         # Step 5: Calculate OKR Scores
-        print("\n[5/7] Calculating OKR scores...")
+        print("\n[5/8] Calculating OKR scores...")
         
         okr_calc = OKRCalculator('config/okr_config.yaml', kpi_results)
         okr_results = okr_calc.calculate_overall_okr()
@@ -208,7 +222,7 @@ def main():
         print(f"✓ Overall OKR Score: {okr_results['overall_score']}%")
         
         # Step 5.5: Calculate Geographic Analysis
-        print("\n[5.5/7] Calculating geographic analysis...")
+        print("\n[5.5/8] Calculating geographic analysis...")
         geo_results = geographic_analysis.analyze_geography(
             incidents=incidents,
             requests=requests if requests is not None else pd.DataFrame(),
@@ -217,15 +231,59 @@ def main():
         print(f"✓ Analyzed {len(geo_results['location_summary'])} locations")
         print(f"✓ Found {geo_results['intervention_summary']['critical_count']} critical locations")
 
+        # Step 5.6: Process Problem Management (if enabled and data available)
+        pm_report_path = None
+        problems = None
+        if config.get('kpis', {}).get('RCA001', {}).get('enabled', False):
+            print("\n[5.6/8] Processing Problem Management data...")
+            try:
+                # Try to load PM data
+                problems, tasks = load_problem_data.load_all_problem_data(
+                    config['data_sources']['environments'][env]['input_directory'],
+                    config
+                )
+
+                if problems is not None and tasks is not None:
+                    # Transform PM data
+                    transformed_pm = transform_problems.transform_all_problem_data(problems, tasks)
+                    print(f"✓ Transformed {len(transformed_pm)} problems")
+
+                    # Calculate PM KPIs
+                    pm_kpis = calculate_pm_kpis.calculate_all_pm_kpis(transformed_pm, config)
+                    rca = pm_kpis['RCA001']
+
+                    print(f"✓ RCA001 Completion Rate: {rca['completion_rate']:.1f}%")
+                    print(f"✓ Status: {rca['status']}")
+
+                    # Generate PM dashboard
+                    pm_report_path = generate_pm_reports.export_pm_dashboard(
+                        pm_kpis,
+                        transformed_pm,
+                        output_dir=output_dir
+                    )
+                    print(f"✓ PM Dashboard saved to: {pm_report_path}")
+                else:
+                    print("ℹ Problem Management data files not found - skipping PM report")
+            except Exception as pm_error:
+                print(f"ℹ Problem Management processing skipped: {pm_error}")
+                # Don't fail the whole pipeline if PM data is missing
+
         # Step 5.75: Create Normalized Output Tables (Intermediate Layer)
-        print("\n[5.75/7] Creating normalized output tables...")
+        print("\n[5.75/8] Creating normalized output tables...")
+
+        # Ensure problems DataFrame is available for output tables
+        problems_for_output = None
+        if problems is not None:
+            problems_for_output = problems
+
         output_tables = analysis_output.create_all_output_tables(
             kpi_results=kpi_results,
             okr_results=okr_results,
             action_triggers=action_triggers,
             incidents=incidents,
             requests=requests if requests is not None else pd.DataFrame(),
-            geo_results=geo_results
+            geo_results=geo_results,
+            problems=problems_for_output
         )
         print(f"✓ Created {len(output_tables)} normalized tables")
         for table_name, table_df in output_tables.items():
@@ -234,7 +292,7 @@ def main():
 
         # Step 5.8: Save Output Tables (Optional - Physical Layer)
         if args.save_tables:
-            print(f"\n[5.8/7] Saving output tables ({args.tables_format} format)...")
+            print(f"\n[5.8/8] Saving output tables ({args.tables_format} format)...")
             saved_files = analysis_output.save_output_tables(
                 output_tables,
                 output_dir='data/output/tables',
@@ -244,8 +302,9 @@ def main():
             for table_name, filepath in saved_files.items():
                 print(f"  - {filepath}")
 
+
         # Step 6: Display Results
-        print("\n[6/7] Results:")
+        print("\n[6/8] Results:")
         print("\n" + "="*70)
         print("KPI RESULTS")
         print("="*70)
@@ -320,7 +379,7 @@ def main():
                     print(f"    → Escalate to: {trigger['escalation']}")
         
         # Step 7: Generate Excel Report
-        print("\n[7/7] Generating Excel report...")
+        print("\n[7/8] Generating Excel report...")
         
         # Create output directory
         output_dir = "data/output"
@@ -346,6 +405,9 @@ def main():
         )
         
         print(f"✓ Excel report generated successfully")
+        
+        if pm_report_path:
+            print(f"✓ PM Dashboard generated: {pm_report_path}")
         
         print("\n" + "="*70)
         print(f"✓ Pipeline completed successfully")

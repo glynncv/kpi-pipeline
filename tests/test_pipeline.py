@@ -5,7 +5,13 @@ Validates data loading, transformation, and KPI calculations.
 
 import sys
 import os
+import io
 from pathlib import Path
+
+# Fix Windows console encoding for Unicode characters
+if sys.platform == 'win32':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -148,10 +154,10 @@ def test_kpi_calculations(incidents, requests, config):
                 print(f"  Adherence: {kpi_data['Adherence_Rate']}%")
                 print(f"  Business Impact: {kpi_data['Business_Impact']}")
         
-        # Validate expected KPIs
-        expected_kpis = ['SM001', 'SM002', 'SM004', 'OVERALL']
+        # Validate expected KPIs (using actual keys returned by calculate_all)
+        expected_kpis = ['SM001', 'SM002/KR4', 'SM004/KR6', 'OVERALL']
         if config['kpis']['SM003']['enabled']:
-            expected_kpis.insert(2, 'SM003')
+            expected_kpis.insert(2, 'SM003/KR5')
         
         for kpi in expected_kpis:
             assert kpi in kpi_results, f"Missing expected KPI: {kpi}"
