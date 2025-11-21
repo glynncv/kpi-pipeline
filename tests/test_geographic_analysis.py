@@ -16,12 +16,18 @@ Run with: python test_geographic_analysis.py
 import pandas as pd
 import numpy as np
 import sys
+import io
 from pathlib import Path
 
-# Add parent directory to path for imports
-sys.path.insert(0, str(Path(__file__).parent))
+# Fix Windows console encoding for Unicode characters
+if sys.platform == 'win32':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8')
 
-import geographic_analysis
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from src import geographic_analysis
 
 
 def create_test_config():
@@ -54,8 +60,25 @@ def create_test_config():
             }
         },
         'kpis': {
+            'SM001': {'targets': {'p1_max': 0, 'p2_max': 5}},  # Major incident targets
             'SM002': {'targets': {'backlog_max': 0.10}},  # 10% max backlog
-            'SM004': {'targets': {'fcr_min': 0.80}},       # 80% min FCR
+            'SM003': {'targets': {'aged_max': 0.05}},  # 5% max aged requests
+            'SM004': {'targets': {'ftf_rate_min': 80.0}},  # 80% min FTF rate
+            'RCA001': {'targets': {'completion_rate_min': 0.95}},  # 95% min RCA completion
+        },
+        'global_status_rules': {
+            'scorecard_scoring': {
+                'weight_sm001': 20,
+                'weight_sm002': 35,
+                'weight_sm003': 20,
+                'weight_sm004': 10,
+                'weight_rca001': 15
+            },
+            'performance_bands': {
+                'excellent': 90,
+                'good': 80,
+                'needs_improvement': 60
+            }
         }
     }
 

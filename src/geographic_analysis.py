@@ -497,14 +497,27 @@ def calculate_geographic_okr_scores(
         
         # Determine overall OKR status
         bands = okr_config['weighting']['overall_score']['performance_bands']
+        status_value = ''
         if overall_score >= bands['excellent']['min_score']:
-            df.at[idx, 'Overall_OKR_Status'] = bands['excellent']['status']
+            status_value = bands['excellent']['status']
         elif overall_score >= bands['on_track']['min_score']:
-            df.at[idx, 'Overall_OKR_Status'] = bands['on_track']['status']
+            status_value = bands['on_track']['status']
         elif overall_score >= bands['at_risk']['min_score']:
-            df.at[idx, 'Overall_OKR_Status'] = bands['at_risk']['status']
+            status_value = bands['at_risk']['status']
         else:
-            df.at[idx, 'Overall_OKR_Status'] = bands['critical']['status']
+            status_value = bands['critical']['status']
+        
+        # Sanitize emojis for CSV compatibility
+        status_value = status_value.replace('🔴 CRITICAL', '[CRITICAL]')
+        status_value = status_value.replace('🟡 ON TRACK', '[ON TRACK]')
+        status_value = status_value.replace('🟠 AT RISK', '[AT RISK]')
+        status_value = status_value.replace('🟢 EXCELLENT', '[EXCELLENT]')
+        status_value = status_value.replace('🟢', '[ON TRACK]')
+        status_value = status_value.replace('🔴', '[CRITICAL]')
+        status_value = status_value.replace('🟡', '[AT RISK]')
+        status_value = status_value.replace('🟠', '[AT RISK]')
+        
+        df.at[idx, 'Overall_OKR_Status'] = status_value
     
     return df
 

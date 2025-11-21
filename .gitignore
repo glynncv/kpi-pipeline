@@ -43,6 +43,8 @@ Thumbs.db
 data/input/*.csv
 data/output/*.xlsx
 data/output/*.csv
+data/output/tables/*.parquet
+data/output/tables/*.json
 *.log
 
 # Validation test results

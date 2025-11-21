@@ -11,6 +11,7 @@ providing structured tables that can be used for multiple output formats:
 """
 
 import pandas as pd
+import re
 from typing import Dict, Any, Optional
 from datetime import datetime
 
@@ -405,6 +406,72 @@ def create_all_output_tables(
     return output_tables
 
 
+def _sanitize_emoji_for_csv(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Replace emoji characters in status columns with text equivalents for CSV compatibility.
+    
+    Args:
+        df: DataFrame that may contain emoji characters
+        
+    Returns:
+        DataFrame with emojis replaced by text
+    """
+    df = df.copy()
+    
+    # Find status columns (columns containing 'Status' in name)
+    status_columns = [col for col in df.columns if 'Status' in col]
+    
+    for col in status_columns:
+        if df[col].dtype == 'object':  # String columns
+            df[col] = df[col].astype(str)
+            
+            # First, handle emoji + text patterns (most specific)
+            # Pattern: emoji followed by space and text
+            df[col] = df[col].str.replace(r'🔴\s+CRITICAL', '[CRITICAL]', regex=True)
+            df[col] = df[col].str.replace(r'🟡\s+ON TRACK', '[ON TRACK]', regex=True)
+            df[col] = df[col].str.replace(r'🟠\s+AT RISK', '[AT RISK]', regex=True)
+            df[col] = df[col].str.replace(r'🟢\s+EXCELLENT', '[EXCELLENT]', regex=True)
+            df[col] = df[col].str.replace(r'🟢\s+ON TRACK', '[ON TRACK]', regex=True)
+            
+            # Replace standalone emojis
+            df[col] = df[col].str.replace('🔴', '[CRITICAL]', regex=False)
+            df[col] = df[col].str.replace('🟡', '[AT RISK]', regex=False)
+            df[col] = df[col].str.replace('🟠', '[AT RISK]', regex=False)  # Orange circle
+            df[col] = df[col].str.replace('🟢', '[ON TRACK]', regex=False)
+            
+            # Handle corrupted emoji patterns (common Windows encoding issues)
+            # These patterns catch emojis that got corrupted during encoding
+            df[col] = df[col].str.replace(r'[^\x00-\x7F]+CRITICAL', '[CRITICAL]', regex=True)
+            df[col] = df[col].str.replace(r'[^\x00-\x7F]+ON TRACK', '[ON TRACK]', regex=True)
+            df[col] = df[col].str.replace(r'[^\x00-\x7F]+AT RISK', '[AT RISK]', regex=True)
+            df[col] = df[col].str.replace(r'[^\x00-\x7F]+EXCELLENT', '[EXCELLENT]', regex=True)
+            
+            # Remove any remaining non-ASCII characters followed by status text
+            # This catches any corrupted emoji patterns
+            df[col] = df[col].str.replace(r'[^\x00-\x7F\s\[\]]+(?=\s*(?:CRITICAL|ON TRACK|AT RISK|EXCELLENT))', '', regex=True)
+            
+            # Handle any remaining emoji Unicode ranges (catch-all for other emojis)
+            # This regex matches emoji characters (Unicode ranges for emojis)
+            emoji_pattern = re.compile(
+                "["
+                "\U0001F300-\U0001F9FF"  # Miscellaneous Symbols and Pictographs
+                "\U0001FA00-\U0001FAFF"  # Chess Symbols
+                "\U00002600-\U000026FF"  # Miscellaneous Symbols
+                "\U00002700-\U000027BF"  # Dingbats
+                "]+"
+            )
+            df[col] = df[col].apply(lambda x: emoji_pattern.sub('', str(x)) if pd.notna(x) else x)
+            
+            # Clean up any double spaces or formatting issues
+            df[col] = df[col].str.replace(r'\s+', ' ', regex=True).str.strip()
+            
+            # Final cleanup: if we still have corrupted patterns, extract just the text part
+            # Pattern: any non-ASCII chars followed by status words
+            df[col] = df[col].str.replace(r'^[^\x00-\x7F\s\[\]]*\s*', '', regex=True)
+    
+    return df
+
+
 def save_output_tables(
     output_tables: Dict[str, pd.DataFrame],
     output_dir: str = 'data/archive',
@@ -446,7 +513,9 @@ def save_output_tables(
             df.to_parquet(filepath, index=False)
         elif format == 'csv':
             filepath = os.path.join(output_dir, f"{filename}.csv")
-            df.to_csv(filepath, index=False)
+            # Sanitize emojis for CSV compatibility and use UTF-8 with BOM for Excel
+            df_clean = _sanitize_emoji_for_csv(df)
+            df_clean.to_csv(filepath, index=False, encoding='utf-8-sig')
         elif format == 'json':
             filepath = os.path.join(output_dir, f"{filename}.json")
             df.to_json(filepath, orient='records', date_format='iso')
