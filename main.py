@@ -21,13 +21,13 @@ Usage:
     python main.py --env dev                    # Use dev environment (small test data)
     python main.py --incidents path/to/file.csv # Override incidents file
     python main.py --requests path/to/file.csv  # Override requests file
-    python main.py --save-tables                # Save normalized output tables
-    python main.py --save-tables --tables-format csv  # Save as CSV instead of parquet
+    python main.py --save-tables                # Save normalized output tables (CSV by default)
+    python main.py --save-tables --tables-format parquet  # Save as Parquet instead of CSV
 
 Output Files:
     - data/output/KPI_Report_{env}_{timestamp}.xlsx
     - data/output/PM_Dashboard_{timestamp}.xlsx (if PM data available)
-    - data/output/tables/*.parquet (if --save-tables enabled)
+    - data/output/tables/*.csv (if --save-tables enabled, or *.parquet with --tables-format parquet)
 """
 
 import sys
@@ -108,9 +108,9 @@ Examples:
 
     parser.add_argument(
         '--tables-format',
-        choices=['parquet', 'csv', 'json'],
-        default='parquet',
-        help='Format for saved tables (default: parquet)'
+        choices=['csv', 'parquet', 'json'],
+        default='csv',
+        help='Format for saved tables (default: csv)'
     )
 
     return parser.parse_args()
