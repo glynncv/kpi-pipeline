@@ -1211,11 +1211,11 @@ def test_cli_save_tables_flag():
             'geographic_summary': analysis_output.create_geographic_summary_table(create_mock_geo_results())
         }
         
-        # Simulate --save-tables behavior (default Parquet)
+        # Simulate --save-tables behavior (default CSV)
         saved_files = analysis_output.save_output_tables(
             output_tables,
             output_dir=temp_dir,
-            format='parquet'
+            format='csv'
         )
         
         # Verify all 7 tables saved
