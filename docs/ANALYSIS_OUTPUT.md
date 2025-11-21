@@ -44,11 +44,11 @@ python main.py
 Save tables to disk for auditing or historical analysis:
 
 ```bash
-# Save as Parquet (default, recommended)
+# Save as CSV (default)
 python main.py --save-tables
 
-# Save as CSV
-python main.py --save-tables --tables-format csv
+# Save as Parquet (more efficient for large datasets)
+python main.py --save-tables --tables-format parquet
 
 # Save as JSON
 python main.py --save-tables --tables-format json
@@ -76,16 +76,18 @@ When using `--save-tables`, files are saved to:
 
 ```
 data/output/tables/
-├── kpi_summary_20251109_143022.parquet
-├── overall_score_20251109_143022.parquet
-├── okr_scorecard_20251109_143022.parquet
-├── action_triggers_20251109_143022.parquet
-├── incident_detail_20251109_143022.parquet
-├── request_detail_20251109_143022.parquet
-├── problem_detail_20251109_143022.parquet  (optional, if problems data available)
-├── geographic_summary_20251109_143022.parquet
-└── sdm_summary_20251109_143022.parquet     (optional, if SDM data available)
+├── kpi_summary_20251109_143022.csv
+├── overall_score_20251109_143022.csv
+├── okr_scorecard_20251109_143022.csv
+├── action_triggers_20251109_143022.csv
+├── incident_detail_20251109_143022.csv
+├── request_detail_20251109_143022.csv
+├── problem_detail_20251109_143022.csv  (optional, if problems data available)
+├── geographic_summary_20251109_143022.csv
+└── sdm_summary_20251109_143022.csv     (optional, if SDM data available)
 ```
+
+**Note**: Files are saved as `.csv` by default. Use `--tables-format parquet` for `.parquet` files.
 
 Files are timestamped to support historical trending.
 
@@ -141,10 +143,10 @@ sdm_df = analysis_output.create_sdm_summary_table(sdm_results)
 saved_files = analysis_output.save_output_tables(
     output_tables,
     output_dir='data/output/tables',
-    format='parquet'  # or 'csv' or 'json'
+    format='csv'  # or 'parquet' or 'json'
 )
 
-# Returns: {'kpi_summary': 'data/output/tables/kpi_summary_20251109_143022.parquet', ...}
+# Returns: {'kpi_summary': 'data/output/tables/kpi_summary_20251109_143022.csv', ...}
 ```
 
 ## Benefits
@@ -183,12 +185,16 @@ Compare metrics over time:
 ```python
 import pandas as pd
 
-# Load historical snapshots
-nov_data = pd.read_parquet('data/output/tables/kpi_summary_20251101_090000.parquet')
-dec_data = pd.read_parquet('data/output/tables/kpi_summary_20251201_090000.parquet')
+# Load historical snapshots (CSV by default)
+nov_data = pd.read_csv('data/output/tables/kpi_summary_20251101_090000.csv')
+dec_data = pd.read_csv('data/output/tables/kpi_summary_20251201_090000.csv')
 
 # Compare
 trend = pd.merge(nov_data, dec_data, on='kpi_code', suffixes=['_nov', '_dec'])
+
+# Or if using Parquet format:
+# nov_data = pd.read_parquet('data/output/tables/kpi_summary_20251101_090000.parquet')
+# dec_data = pd.read_parquet('data/output/tables/kpi_summary_20251201_090000.parquet')
 ```
 
 ### 4. Separate Testing
@@ -211,9 +217,9 @@ def test_excel_formatting():
 Regenerate reports without recalculating:
 
 ```python
-# Load saved analytical output
+# Load saved analytical output (CSV by default)
 tables = {
-    'kpi_summary': pd.read_parquet('data/output/tables/kpi_summary_20251109.parquet'),
+    'kpi_summary': pd.read_csv('data/output/tables/kpi_summary_20251109.csv'),
     # ... load other tables
 }
 
@@ -225,11 +231,11 @@ generate_powerpoint(tables)  # Future capability
 
 | Format | Use Case | Pros | Cons |
 |--------|----------|------|------|
-| **Parquet** | Default, archiving | Compact, typed, fast | Requires pyarrow |
-| **CSV** | Sharing, Excel import | Universal | No types, larger |
+| **CSV** | Default, sharing, Excel import | Universal, human-readable | No types, larger files |
+| **Parquet** | Large datasets, archiving | Compact, typed, fast | Requires pyarrow |
 | **JSON** | API responses, web | Structured | Verbose |
 
-**Recommendation**: Use Parquet for archiving, CSV for ad-hoc sharing.
+**Recommendation**: CSV is the default for ease of use and compatibility. Use Parquet for large datasets or when file size matters.
 
 ## Data Contracts
 

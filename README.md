@@ -92,11 +92,11 @@ chmod +x setup.sh
 # Use development environment (smaller test data)
 python main.py --env dev
 
-# Save normalized output tables for auditing
+# Save normalized output tables for auditing (CSV by default)
 python main.py --save-tables
 
-# Save tables as CSV instead of Parquet
-python main.py --save-tables --tables-format csv
+# Save tables as Parquet instead of CSV
+python main.py --save-tables --tables-format parquet
 
 # Override input files
 python main.py --incidents custom_incidents.csv --requests custom_requests.csv
