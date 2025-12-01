@@ -272,21 +272,21 @@ This will:
    - Verify Step 5.75 executes (table creation)
    - Verify Step 5.8 is skipped (no files created)
 
-2. **Test with --save-tables (default Parquet)**
+2. **Test with --save-tables (default CSV)**
    ```bash
    python main.py --env dev --save-tables
    ```
    - Verify Step 5.75 executes
    - Verify Step 5.8 executes
    - Verify files created in `data/output/tables/`
-   - Verify all 7-8 tables saved as `.parquet` files (problem_detail is optional if problems data available)
+   - Verify all 7-9 tables saved as `.csv` files (problem_detail and sdm_summary are optional)
    - Verify console output shows file paths
 
-3. **Test with --save-tables --tables-format csv**
+3. **Test with --save-tables --tables-format parquet**
    ```bash
-   python main.py --env dev --save-tables --tables-format csv
+   python main.py --env dev --save-tables --tables-format parquet
    ```
-   - Verify files created as `.csv` files
+   - Verify files created as `.parquet` files
    - Verify files are readable
 
 4. **Test with --save-tables --tables-format json**
@@ -325,18 +325,24 @@ This will:
    import pandas as pd
    from pathlib import Path
    import glob
-   
-   # Find and read a specific parquet file
-   files = list(Path('data/output/tables').glob('kpi_summary_*.parquet'))
+
+   # Find and read a specific CSV file (default format)
+   files = list(Path('data/output/tables').glob('kpi_summary_*.csv'))
    if files:
-       df = pd.read_parquet(files[0])
+       df = pd.read_csv(files[0])
        print(df.head())
-   
-   # Or read all parquet files
-   for filepath in Path('data/output/tables').glob('*.parquet'):
+
+   # Or read all CSV files
+   for filepath in Path('data/output/tables').glob('*.csv'):
        print(f"\n{filepath.name}:")
-       df = pd.read_parquet(filepath)
+       df = pd.read_csv(filepath)
        print(df.head())
+
+   # If using Parquet format:
+   # files = list(Path('data/output/tables').glob('kpi_summary_*.parquet'))
+   # if files:
+   #     df = pd.read_parquet(files[0])
+   #     print(df.head())
    ```
    
    **Note**: Don't try to run Python code directly in PowerShell. Use `python` command first, or create a `.py` script file.
@@ -350,8 +356,8 @@ This will:
 
 - [ ] Run all automated tests: `python tests/test_analysis_output.py`
 - [ ] Verify all 44 tests pass
-- [ ] Test CLI with --save-tables (Parquet)
-- [ ] Test CLI with --save-tables --tables-format csv
+- [ ] Test CLI with --save-tables (CSV default)
+- [ ] Test CLI with --save-tables --tables-format parquet
 - [ ] Test CLI with --save-tables --tables-format json
 - [ ] Verify files created in correct location
 - [ ] Verify files readable and data intact
