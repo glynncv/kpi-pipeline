@@ -208,8 +208,6 @@ Thank you to all contributors who have helped improve this project!
 
 - Initial development and v1.0.0 release: [Your Organization]
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
-
 ---
 
 ## Links

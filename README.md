@@ -211,15 +211,6 @@ Validates:
 - 🐙 [GitHub Setup](docs/GITHUB_SETUP.md) - Deploy to GitHub
 - 🌿 [Git Workflow](docs/GIT_WORKFLOW.md) - Development workflow
 
-## 🤝 Contributing
-
-We welcome contributions! Please see [`CONTRIBUTING.md`](CONTRIBUTING.md) for guidelines on:
-
-- Reporting bugs
-- Suggesting features
-- Code style standards (PEP 8)
-- Pull request process
-
 ## 📝 License
 
 This project is licensed under the MIT License - see the [`LICENSE`](LICENSE) file for details.
