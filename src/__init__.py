@@ -15,6 +15,7 @@ from . import transform
 from . import transform_problems
 from . import calculate_kpis
 from . import calculate_pm_kpis
+from . import report_utils
 from . import generate_pm_reports
 
 __all__ = [
@@ -25,6 +26,7 @@ __all__ = [
     "transform_problems",
     "calculate_kpis",
     "calculate_pm_kpis",
+    "report_utils",
     "generate_pm_reports",
 ]
 
