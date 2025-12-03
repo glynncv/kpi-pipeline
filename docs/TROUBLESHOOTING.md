@@ -235,7 +235,7 @@ KeyError: 'kpis'
 
 **Cause**: Configuration file missing required sections
 
-**Solution**: Compare with `config/complete_kpi_config.yaml` and add missing sections
+**Solution**: Check `config/kpi_config.yaml` for required sections and refer to `docs/CONFIGURATION.md` for documentation
 
 ---
 

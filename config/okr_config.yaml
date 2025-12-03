@@ -570,8 +570,8 @@ validation:
 # ==========================================
 notes:
   calculation_references:
-    - "See kpi_config.yaml for detailed KPI calculation methods"
-    - "See complete_kpi_config.yaml for comprehensive documentation"
+    - "See kpi_config.yaml for detailed KPI calculation methods and configuration"
+    - "See docs/CONFIGURATION.md for comprehensive configuration documentation"
   
   version_history:
     v1_0:

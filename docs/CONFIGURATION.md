@@ -7,8 +7,10 @@ Learn how to customize every aspect of the KPI Pipeline.
 The KPI Pipeline uses YAML configuration files for maximum flexibility. All settings are human-readable and easy to modify.
 
 **Configuration files:**
-- `config/kpi_config.yaml` - Main configuration (use this for daily operations)
-- `config/complete_kpi_config.yaml` - Reference with all available options
+- `config/kpi_config.yaml` - Main configuration with all available options
+- `config/okr_config.yaml` - OKR (Objectives and Key Results) configuration
+
+**Note**: All configuration options are documented in this guide. The `kpi_config.yaml` file contains comprehensive examples and comments for every setting.
 
 ## Quick Configuration Changes
 
@@ -352,8 +354,8 @@ kpis:
     p2_target: 25
 ```
 
-### 5. Use Complete Config as Reference
-Keep `config/complete_kpi_config.yaml` as a reference - don't edit it directly.
+### 5. Document Your Changes
+Add comments to your config file explaining customizations and their business reasons.
 
 ## Troubleshooting Configuration Issues
 
@@ -369,8 +371,8 @@ Keep `config/complete_kpi_config.yaml` as a reference - don't edit it directly.
 
 ### Error: "Missing required key"
 
-**Cause**: Configuration missing a required section  
-**Solution**: Compare with `complete_kpi_config.yaml` and add missing sections
+**Cause**: Configuration missing a required section
+**Solution**: Check the configuration documentation in this guide or examine the `kpi_config.yaml` file for required sections
 
 ### Unexpected KPI Results
 
@@ -450,7 +452,7 @@ with open('config/kpi_config.yaml', 'w') as f:
 
 ---
 
-**Need more examples?** Check `config/complete_kpi_config.yaml` for all available options.
+**Need more examples?** Check the `kpi_config.yaml` file for comprehensive examples and inline documentation of all available options.
 
 
 

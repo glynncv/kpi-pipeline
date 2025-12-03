@@ -114,7 +114,7 @@ python -c "from src.config_loader import load_config; config = load_config('conf
 
 - README: `README.md`
 - Deployment Guide: `DEPLOYMENT_CHECKLIST.md`
-- Full Config Reference: `complete_kpi_config.yaml`
+- Config Documentation: `docs/CONFIGURATION.md` and `config/kpi_config.yaml`
 - Team Contact: IT Service Management Team
 
 ---

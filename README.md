@@ -101,8 +101,8 @@ python main.py --incidents custom_incidents.csv --requests custom_requests.csv
 ```
 kpi_pipeline/
 ├── config/
-│   ├── kpi_config.yaml           # Main configuration file
-│   └── complete_kpi_config.yaml  # Full configuration with all options
+│   ├── kpi_config.yaml           # Main KPI configuration file
+│   └── okr_config.yaml           # OKR configuration file
 ├── data/
 │   ├── input/                    # Place your CSV files here
 │   │   ├── README.md
@@ -151,8 +151,8 @@ kpi_pipeline/
 
 The pipeline uses YAML configuration files located in the `config/` directory:
 
-- `kpi_config.yaml`: Main configuration (recommended for daily use)
-- `complete_kpi_config.yaml`: Full configuration with all available options
+- `kpi_config.yaml`: Main KPI configuration with all available options and inline documentation
+- `okr_config.yaml`: OKR (Objectives and Key Results) configuration
 
 ### Key Configuration Sections
 

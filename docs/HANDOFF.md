@@ -462,7 +462,7 @@ cp config/backups/kpi_config_YYYYMMDD.yaml config/kpi_config.yaml
 
 - Sample data available in `tests/sample_data/` (generate with `python tests/generate_sample_data.py`)
 - Test suite demonstrates expected behavior: `tests/test_pipeline.py`
-- Configuration examples in `config/complete_kpi_config.yaml`
+- Configuration examples and documentation in `config/kpi_config.yaml` and `docs/CONFIGURATION.md`
 
 ---
 

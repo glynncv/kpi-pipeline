@@ -249,9 +249,10 @@ This checks:
    python tests/test_pipeline.py
    ```
 
-3. **Check configuration** - Use the complete config as reference:
+3. **Check configuration** - Review the config file and documentation:
    ```
-   config/complete_kpi_config.yaml
+   config/kpi_config.yaml
+   docs/CONFIGURATION.md
    ```
 
 4. **Review outputs** - Check console output for warnings or issues

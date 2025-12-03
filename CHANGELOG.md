@@ -80,8 +80,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Performance banding (Excellent/Good/Needs Improvement)
 
 #### Configuration Management
-- Main configuration file (`config/kpi_config.yaml`)
-- Complete reference configuration (`config/complete_kpi_config.yaml`)
+- Main configuration file with all options (`config/kpi_config.yaml`)
+- OKR configuration file (`config/okr_config.yaml`)
+- Comprehensive configuration documentation (`docs/CONFIGURATION.md`)
 - Flexible threshold and target configuration
 - Dynamic weight adjustment when KPIs are disabled
 - Configurable performance bands

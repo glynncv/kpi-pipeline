@@ -14,8 +14,8 @@ kpi-pipeline/                          ← Root project folder
 │   └── generate_reports.py            ✓ From Conversation 5
 │
 ├── config/                            ← Configuration files
-│   ├── kpi_config.yaml                ✓ From kpi-config-yaml.txt
-│   └── complete_kpi_config.yaml       ✓ From complete-kpi-config-yaml.txt
+│   ├── kpi_config.yaml                ✓ Main KPI configuration
+│   └── okr_config.yaml                ✓ OKR configuration
 │
 ├── data/                              ← Data directory
 │   ├── input/                         ← Input CSV files
@@ -61,7 +61,7 @@ After copying all files, you should have:
 
 ### Configuration (2 files)
 - [ ] config/kpi_config.yaml
-- [ ] config/complete_kpi_config.yaml
+- [ ] config/okr_config.yaml
 
 ### Documentation (6 files)
 - [ ] README.md
