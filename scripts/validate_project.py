@@ -83,7 +83,7 @@ def check_yaml_validity():
         
         yaml_files = [
             'config/kpi_config.yaml',
-            'config/complete_kpi_config.yaml',
+            'config/okr_config.yaml',
         ]
         
         all_ok = True

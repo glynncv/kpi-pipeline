@@ -10,8 +10,7 @@ Date: 2025-11-04
 
 import pandas as pd
 from openpyxl import Workbook
-from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
-from openpyxl.utils import get_column_letter
+from openpyxl.styles import Font, Alignment
 from openpyxl.utils.dataframe import dataframe_to_rows
 from datetime import datetime
 from typing import Dict, Any
@@ -23,162 +22,41 @@ try:
     from . import load_problem_data
     from . import transform_problems
     from . import calculate_pm_kpis
+    from .report_utils import (
+        get_status_color,
+        get_status_emoji,
+        apply_header_style,
+        apply_cell_style,
+        auto_adjust_column_width,
+        COLOR_HEADER
+    )
 except ImportError:
     try:
         from src import config_loader
         from src import load_problem_data
         from src import transform_problems
         from src import calculate_pm_kpis
+        from src.report_utils import (
+            get_status_color,
+            get_status_emoji,
+            apply_header_style,
+            apply_cell_style,
+            auto_adjust_column_width,
+            COLOR_HEADER
+        )
     except ImportError:
         import config_loader
         import load_problem_data
         import transform_problems
         import calculate_pm_kpis
-
-
-# ============================================================================
-# COLOR CONSTANTS
-# ============================================================================
-
-# Status Colors (matching traffic light system)
-COLOR_GREEN = "C6EFCE"      # Light green
-COLOR_YELLOW = "FFEB9C"     # Light yellow
-COLOR_RED = "FFC7CE"        # Light red
-
-# Header Colors
-COLOR_HEADER = "4472C4"     # Professional blue
-COLOR_WHITE = "FFFFFF"      # White text
-
-# Border Colors
-COLOR_BORDER = "D0D0D0"     # Light gray
-
-
-# ============================================================================
-# HELPER FUNCTIONS - FORMATTING
-# ============================================================================
-
-def get_status_color(status: str) -> str:
-    """
-    Get the fill color for a given status.
-    
-    Args:
-        status: Status string ('GREEN', 'YELLOW', or 'RED')
-        
-    Returns:
-        Hex color code for the status
-        
-    Example:
-        >>> get_status_color('GREEN')
-        'C6EFCE'
-    """
-    color_map = {
-        'GREEN': COLOR_GREEN,
-        'YELLOW': COLOR_YELLOW,
-        'RED': COLOR_RED
-    }
-    return color_map.get(status.upper(), COLOR_BORDER)
-
-
-def get_status_emoji(status: str) -> str:
-    """
-    Get an emoji indicator for a given status.
-    
-    Args:
-        status: Status string ('GREEN', 'YELLOW', or 'RED')
-        
-    Returns:
-        Emoji string for the status
-        
-    Example:
-        >>> get_status_emoji('RED')
-        '🔴'
-    """
-    emoji_map = {
-        'GREEN': '🟢',
-        'YELLOW': '🟡',
-        'RED': '🔴'
-    }
-    return emoji_map.get(status.upper(), '⚪')
-
-
-def apply_header_style(cell, bold: bool = True, bg_color: str = COLOR_HEADER):
-    """
-    Apply professional header styling to a cell.
-    
-    Args:
-        cell: openpyxl cell object
-        bold: Whether to make text bold
-        bg_color: Background color (hex code)
-    """
-    cell.font = Font(bold=bold, color=COLOR_WHITE, size=11)
-    cell.fill = PatternFill(start_color=bg_color, end_color=bg_color, fill_type="solid")
-    cell.alignment = Alignment(horizontal='center', vertical='center')
-    
-    # Add borders
-    thin_border = Border(
-        left=Side(style='thin', color=COLOR_BORDER),
-        right=Side(style='thin', color=COLOR_BORDER),
-        top=Side(style='thin', color=COLOR_BORDER),
-        bottom=Side(style='thin', color=COLOR_BORDER)
-    )
-    cell.border = thin_border
-
-
-def apply_cell_style(cell, bg_color: str = None, bold: bool = False, 
-                     align: str = 'left', number_format: str = None):
-    """
-    Apply general cell styling.
-    
-    Args:
-        cell: openpyxl cell object
-        bg_color: Background color (hex code, optional)
-        bold: Whether to make text bold
-        align: Text alignment ('left', 'center', 'right')
-        number_format: Number format string (e.g., '0.0%')
-    """
-    if bold:
-        cell.font = Font(bold=True)
-    
-    if bg_color:
-        cell.fill = PatternFill(start_color=bg_color, end_color=bg_color, fill_type="solid")
-    
-    cell.alignment = Alignment(horizontal=align, vertical='center')
-    
-    if number_format:
-        cell.number_format = number_format
-    
-    # Add borders
-    thin_border = Border(
-        left=Side(style='thin', color=COLOR_BORDER),
-        right=Side(style='thin', color=COLOR_BORDER),
-        top=Side(style='thin', color=COLOR_BORDER),
-        bottom=Side(style='thin', color=COLOR_BORDER)
-    )
-    cell.border = thin_border
-
-
-def auto_adjust_column_width(worksheet, min_width: int = 12, max_width: int = 50):
-    """
-    Auto-adjust column widths based on content.
-    
-    Args:
-        worksheet: openpyxl worksheet object
-        min_width: Minimum column width
-        max_width: Maximum column width
-    """
-    for column in worksheet.columns:
-        max_length = 0
-        column_letter = get_column_letter(column[0].column)
-        
-        for cell in column:
-            try:
-                if cell.value:
-                    max_length = max(max_length, len(str(cell.value)))
-            except:
-                pass
-        
-        adjusted_width = min(max(max_length + 2, min_width), max_width)
-        worksheet.column_dimensions[column_letter].width = adjusted_width
+        from report_utils import (
+            get_status_color,
+            get_status_emoji,
+            apply_header_style,
+            apply_cell_style,
+            auto_adjust_column_width,
+            COLOR_HEADER
+        )
 
 
 # ============================================================================

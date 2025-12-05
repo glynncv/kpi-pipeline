@@ -10,8 +10,6 @@ This script runs the complete KPI pipeline:
 5.5. Calculates geographic analysis (with OKR scores per location)
 5.6. Processes Problem Management KPIs and generates PM Dashboard
 5.7. Calculates SDM analysis (with OKR scores per SDM)
-5.75. Creates normalized output tables (intermediate layer)
-5.8. Saves output tables to disk (optional - physical layer)
 6. Displays results
 7. Generates Excel KPI Report
 8. Summary and completion
@@ -21,13 +19,10 @@ Usage:
     python main.py --env dev                    # Use dev environment (small test data)
     python main.py --incidents path/to/file.csv # Override incidents file
     python main.py --requests path/to/file.csv  # Override requests file
-    python main.py --save-tables                # Save normalized output tables (CSV by default)
-    python main.py --save-tables --tables-format parquet  # Save as Parquet instead of CSV
 
 Output Files:
     - data/output/KPI_Report_{env}_{timestamp}.xlsx
     - data/output/PM_Dashboard_{timestamp}.xlsx (if PM data available)
-    - data/output/tables/*.csv (if --save-tables enabled, or *.parquet with --tables-format parquet)
 """
 
 import sys
@@ -50,7 +45,6 @@ from src import calculate_kpis
 from src import generate_reports
 from src import geographic_analysis
 from src import sdm_analysis
-from src import analysis_output
 from src.okr_calculator import OKRCalculator
 from src import load_problem_data
 from src import transform_problems
@@ -98,19 +92,6 @@ Examples:
         '--config',
         default='config/kpi_config.yaml',
         help='Path to KPI config file (default: config/kpi_config.yaml)'
-    )
-
-    parser.add_argument(
-        '--save-tables',
-        action='store_true',
-        help='Save normalized output tables to data/output/tables/ for archiving'
-    )
-
-    parser.add_argument(
-        '--tables-format',
-        choices=['csv', 'parquet', 'json'],
-        default='csv',
-        help='Format for saved tables (default: csv)'
     )
 
     return parser.parse_args()
@@ -299,43 +280,6 @@ def main():
         else:
             print(f"✓ Analyzed {len(sdm_results['sdm_summary'])} SDMs")
             print(f"✓ Found {sdm_results['intervention_summary']['critical_count']} critical SDMs")
-
-        # Step 5.75: Create Normalized Output Tables (Intermediate Layer)
-        print("\n[5.75/8] Creating normalized output tables...")
-
-        # Ensure problems DataFrame is available for output tables
-        problems_for_output = None
-        if problems is not None:
-            problems_for_output = problems
-
-
-        output_tables = analysis_output.create_all_output_tables(
-            kpi_results=kpi_results,
-            okr_results=okr_results,
-            action_triggers=action_triggers,
-            incidents=incidents,
-            requests=requests if requests is not None else pd.DataFrame(),
-            geo_results=geo_results,
-            problems=problems_for_output,
-            sdm_results=sdm_results if not sdm_results['sdm_summary'].empty else None
-        )
-        print(f"✓ Created {len(output_tables)} normalized tables")
-        for table_name, table_df in output_tables.items():
-            if not table_df.empty:
-                print(f"  - {table_name}: {len(table_df)} rows, {len(table_df.columns)} columns")
-
-        # Step 5.8: Save Output Tables (Optional - Physical Layer)
-        if args.save_tables:
-            print(f"\n[5.8/8] Saving output tables ({args.tables_format} format)...")
-            saved_files = analysis_output.save_output_tables(
-                output_tables,
-                output_dir='data/output/tables',
-                format=args.tables_format
-            )
-            print(f"✓ Saved {len(saved_files)} tables to data/output/tables/")
-            for table_name, filepath in saved_files.items():
-                print(f"  - {filepath}")
-
 
         # Step 6: Display Results
         print("\n[6/8] Results:")

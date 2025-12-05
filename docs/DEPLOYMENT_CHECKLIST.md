@@ -59,8 +59,6 @@ Complete this checklist before deploying to GitHub or production.
 - [ ] `.gitignore`
 - [ ] `setup.sh` and `setup.bat`
 - [ ] `validate_project.py`
-- [ ] `CODE_OF_CONDUCT.md`
-- [ ] `CONTRIBUTING.md`
 - [ ] `CHANGELOG.md`
 
 **Required folders:**
@@ -331,7 +329,6 @@ If any checklist items fail:
 - [GitHub Setup Guide](GITHUB_SETUP.md)
 - [Git Workflow](GIT_WORKFLOW.md)
 - [Maintenance Guide](MAINTENANCE.md)
-- [Contributing Guidelines](../CONTRIBUTING.md)
 
 ---
 

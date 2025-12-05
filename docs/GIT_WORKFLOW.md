@@ -682,7 +682,7 @@ bfg --delete-files sensitive_file.txt
 
 ## Questions?
 
-See [`CONTRIBUTING.md`](../CONTRIBUTING.md) or contact the project maintainer.
+Contact the project maintainer for assistance.
 
 **Happy collaborating!** 🚀
 

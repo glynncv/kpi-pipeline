@@ -17,11 +17,17 @@ from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils.dataframe import dataframe_to_rows
 from openpyxl.chart import BarChart, PieChart, Reference
 
+# Import shared report utilities
+try:
+    from .report_utils import COLORS, get_status_color, apply_header_style, apply_title_style, auto_adjust_column_width
+except ImportError:
+    from report_utils import COLORS, get_status_color, apply_header_style, apply_title_style, auto_adjust_column_width
+
 
 class ReportGenerator:
     """
     Generate Excel reports from KPI results with professional formatting.
-    
+
     Creates multi-sheet workbooks with:
     - Executive summary dashboard
     - KPI scorecard with status indicators
@@ -29,33 +35,22 @@ class ReportGenerator:
     - Raw data sheets for incidents and requests
     - Charts and visualizations
     - Color-coded status indicators
-    
+
     Attributes:
         config: Configuration object with KPI targets and thresholds
+        COLORS: Color scheme dict imported from report_utils
     """
-    
-    # Color scheme for status indicators
-    COLORS = {
-        'PASS': '90EE90',      # Light green
-        'FAIL': 'FFB6C1',      # Light red
-        'EXCELLENT': '90EE90',  # Light green
-        'GOOD': 'B4F8C8',      # Pale green
-        'NEEDS IMPROVEMENT': 'FFD580',  # Light orange
-        'POOR': 'FFB6C1',      # Light red
-        'WARNING': 'FFD580',   # Light orange
-        'CRITICAL': 'FFB6C1',  # Light red
-        'HEADER': '4472C4',    # Blue
-        'SUBHEADER': '70AD47', # Green
-    }
-    
+
     def __init__(self, config):
         """
         Initialize report generator with configuration.
-        
+
         Args:
             config: Config object with KPI definitions and targets
         """
         self.config = config
+        # Use shared color scheme from report_utils
+        self.COLORS = COLORS
     
     def generate_excel_report(self,
                             kpi_results: Dict[str, Any],
