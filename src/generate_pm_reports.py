@@ -11,6 +11,7 @@ Date: 2025-11-04
 import pandas as pd
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment
+from openpyxl.utils import get_column_letter
 from openpyxl.utils.dataframe import dataframe_to_rows
 from datetime import datetime
 from typing import Dict, Any
@@ -28,7 +29,10 @@ try:
         apply_header_style,
         apply_cell_style,
         auto_adjust_column_width,
-        COLOR_HEADER
+        COLOR_HEADER,
+        COLOR_RED,
+        COLOR_GREEN,
+        COLOR_YELLOW
     )
 except ImportError:
     try:
@@ -42,7 +46,10 @@ except ImportError:
             apply_header_style,
             apply_cell_style,
             auto_adjust_column_width,
-            COLOR_HEADER
+            COLOR_HEADER,
+            COLOR_RED,
+            COLOR_GREEN,
+            COLOR_YELLOW
         )
     except ImportError:
         import config_loader
@@ -55,7 +62,10 @@ except ImportError:
             apply_header_style,
             apply_cell_style,
             auto_adjust_column_width,
-            COLOR_HEADER
+            COLOR_HEADER,
+            COLOR_RED,
+            COLOR_GREEN,
+            COLOR_YELLOW
         )
 
 

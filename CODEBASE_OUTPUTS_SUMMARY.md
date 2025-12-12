@@ -60,7 +60,19 @@ Automated action triggers:
   - FCR <70%
   - RCA completion <90%
 
-#### 📑 **Sheet 11: Geographic Analysis**
+#### 📑 **Sheet 11: SDM Analysis**
+Service Delivery Manager performance breakdown:
+- **Intervention Summary**: Total SDMs, Critical/High/Monitor/Standard counts
+- **SDM Summary Table**: Complete breakdown by SDM including:
+  - Total Volume, Volume Tier (High/Medium/Standard/Low)
+  - Incident metrics (Volume, Backlog %, FCR Rate, Major Incident Count)
+  - Request metrics (Volume, Aged Request %)
+  - **Overall KPI Score** and **Overall OKR Score** per SDM
+  - Intervention Priority (Critical/High/Monitor/Standard)
+- **Top 10 Performers**: Best performing SDMs
+- **Bottom 10 Performers**: SDMs requiring intervention
+
+#### 📑 **Sheet 12: Geographic Analysis**
 Location-based performance intelligence:
 - **Volume Tiers**:
   - Tier 1: ≥500 incidents/requests (High Volume)

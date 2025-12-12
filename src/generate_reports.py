@@ -59,6 +59,7 @@ class ReportGenerator:
                             incidents: pd.DataFrame,
                             requests: pd.DataFrame,
                             geo_results: Dict[str, Any] = None,
+                            sdm_results: Dict[str, Any] = None,
                             output_path: str = None) -> None:
         """
         Generate complete Excel dashboard with all KPI and OKR results.
@@ -104,6 +105,13 @@ class ReportGenerator:
                     self._create_geographic_analysis_sheet(wb, geo_results)
                 except Exception as e:
                     print(f"⚠️  Warning: Could not create geographic analysis sheet: {e}")
+            
+            # Add SDM analysis sheet if results provided
+            if sdm_results and not sdm_results.get('sdm_summary', pd.DataFrame()).empty:
+                try:
+                    self._create_sdm_analysis_sheet(wb, sdm_results)
+                except Exception as e:
+                    print(f"⚠️  Warning: Could not create SDM analysis sheet: {e}")
             
             # Note: Raw data sheets omitted for executive reporting
             # Operational analysis module will include detailed data sheets
@@ -1092,6 +1100,194 @@ class ReportGenerator:
             adjusted_width = min(max_length + 2, 50)
             ws.column_dimensions[column_letter].width = adjusted_width
 
+    def _create_sdm_analysis_sheet(self, workbook, sdm_results: Dict[str, Any]) -> None:
+        """
+        Create SDM Analysis sheet with Service Delivery Manager breakdowns.
+        """
+        # Create new sheet
+        ws = workbook.create_sheet("SDM Analysis")
+        
+        # Define styles
+        header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+        header_font = Font(bold=True, color="FFFFFF", size=11)
+        
+        # Priority colors
+        critical_fill = PatternFill(start_color="FF6B6B", end_color="FF6B6B", fill_type="solid")
+        high_fill = PatternFill(start_color="FFA500", end_color="FFA500", fill_type="solid")
+        monitor_fill = PatternFill(start_color="FFE066", end_color="FFE066", fill_type="solid")
+        standard_fill = PatternFill(start_color="90EE90", end_color="90EE90", fill_type="solid")
+        
+        priority_colors = {
+            'Critical': critical_fill,
+            'High': high_fill,
+            'Monitor': monitor_fill,
+            'Standard': standard_fill
+        }
+        
+        thin_border = Border(
+            left=Side(style='thin'),
+            right=Side(style='thin'),
+            top=Side(style='thin'),
+            bottom=Side(style='thin')
+        )
+        
+        # Section 1: Title
+        current_row = 1
+        ws.merge_cells(f'A{current_row}:P{current_row}')
+        ws[f'A{current_row}'] = "SDM ANALYSIS - KPI Performance by Service Delivery Manager"
+        ws[f'A{current_row}'].font = Font(bold=True, size=14)
+        ws[f'A{current_row}'].alignment = Alignment(horizontal='center')
+        current_row += 2
+        
+        # Section 2: Intervention Summary
+        ws[f'A{current_row}'] = "INTERVENTION SUMMARY"
+        ws[f'A{current_row}'].font = Font(bold=True, size=12)
+        current_row += 1
+        
+        intervention = sdm_results.get('intervention_summary', {})
+        summary_data = [
+            ['Total SDMs', intervention.get('total_sdms', 0)],
+            ['Critical (Immediate Action)', intervention.get('critical_count', 0)],
+            ['High Priority', intervention.get('high_count', 0)],
+            ['Monitor', intervention.get('monitor_count', 0)],
+            ['Standard (On Target)', intervention.get('standard_count', 0)]
+        ]
+        
+        for label, value in summary_data:
+            ws[f'A{current_row}'] = label
+            ws[f'B{current_row}'] = value
+            ws[f'A{current_row}'].font = Font(bold=True)
+            current_row += 1
+        
+        current_row += 1
+        
+        # Section 3: SDM Summary Table
+        ws[f'A{current_row}'] = "SDM SUMMARY"
+        ws[f'A{current_row}'].font = Font(bold=True, size=12)
+        current_row += 1
+        
+        sdm_df = sdm_results.get('sdm_summary', pd.DataFrame())
+        
+        if not sdm_df.empty:
+            # Select key columns for display
+            display_cols = [
+                'SDM', 'Total_Volume', 'Volume_Tier_Name', 'Incident_Volume',
+                'Backlog_Pct', 'FCR_Rate', 'Major_Incident_Count',
+                'Request_Volume', 'Aged_Request_Pct',
+                'Overall_KPI_Score', 'Overall_KPI_Status',
+                'Overall_OKR_Score', 'Overall_OKR_Status',
+                'Intervention_Priority'
+            ]
+            
+            # Filter to columns that exist in the dataframe
+            available_cols = [col for col in display_cols if col in sdm_df.columns]
+            sdm_display = sdm_df[available_cols].copy()
+            
+            # Write SDM summary table with headers and data
+            for r_idx, row in enumerate(dataframe_to_rows(sdm_display, index=False, header=True)):
+                for c_idx, value in enumerate(row, 1):
+                    cell = ws.cell(row=current_row, column=c_idx, value=value)
+                    cell.border = thin_border
+                    
+                    # Header row formatting
+                    if r_idx == 0:
+                        cell.fill = header_fill
+                        cell.font = header_font
+                        cell.alignment = Alignment(horizontal='center', vertical='center')
+                    else:
+                        # Color code intervention priority column
+                        try:
+                            col_letter = cell.column_letter
+                            col_name = available_cols[c_idx - 1] if c_idx <= len(available_cols) else None
+                            
+                            if col_name == 'Intervention_Priority' and value in priority_colors:
+                                cell.fill = priority_colors[value]
+                            elif col_name in ['Overall_KPI_Status', 'Overall_OKR_Status']:
+                                # Color code status cells
+                                status_clean = str(value).split()[-1] if ' ' in str(value) else str(value)
+                                if status_clean in self.COLORS:
+                                    cell.fill = PatternFill(start_color=self.COLORS[status_clean],
+                                                          end_color=self.COLORS[status_clean],
+                                                          fill_type='solid')
+                        except (AttributeError, IndexError):
+                            pass
+                
+                current_row += 1
+        
+        current_row += 1
+        
+        # Section 4: Top 10 Performers
+        if 'top_performers' in sdm_results and not sdm_results['top_performers'].empty:
+            ws[f'A{current_row}'] = "TOP 10 PERFORMERS (Best First Call Resolution)"
+            ws[f'A{current_row}'].font = Font(bold=True, size=12)
+            current_row += 1
+            
+            top_df = sdm_results['top_performers']
+            top_cols = ['SDM', 'Total_Volume', 'FCR_Rate', 'Backlog_Pct', 'Overall_KPI_Score', 'Overall_OKR_Score']
+            top_df_display = top_df[[c for c in top_cols if c in top_df.columns]].head(10)
+            
+            for r_idx, row in enumerate(dataframe_to_rows(top_df_display, index=False, header=True)):
+                for c_idx, value in enumerate(row, 1):
+                    cell = ws.cell(row=current_row, column=c_idx, value=value)
+                    cell.border = thin_border
+                    
+                    if r_idx == 0:
+                        cell.fill = header_fill
+                        cell.font = header_font
+                        cell.alignment = Alignment(horizontal='center', vertical='center')
+                
+                current_row += 1
+            
+            current_row += 1
+        
+        # Section 5: Bottom 10 Performers (Need Intervention)
+        if 'bottom_performers' in sdm_results and not sdm_results['bottom_performers'].empty:
+            ws[f'A{current_row}'] = "BOTTOM 10 PERFORMERS (Need Intervention)"
+            ws[f'A{current_row}'].font = Font(bold=True, size=12)
+            current_row += 1
+            
+            bottom_df = sdm_results['bottom_performers']
+            bottom_cols = ['SDM', 'Total_Volume', 'FCR_Rate', 'Backlog_Pct', 'Overall_KPI_Score', 'Overall_OKR_Score', 'Intervention_Priority']
+            bottom_df_display = bottom_df[[c for c in bottom_cols if c in bottom_df.columns]].head(10)
+            
+            for r_idx, row in enumerate(dataframe_to_rows(bottom_df_display, index=False, header=True)):
+                for c_idx, value in enumerate(row, 1):
+                    cell = ws.cell(row=current_row, column=c_idx, value=value)
+                    cell.border = thin_border
+                    
+                    if r_idx == 0:
+                        cell.fill = header_fill
+                        cell.font = header_font
+                        cell.alignment = Alignment(horizontal='center', vertical='center')
+                    else:
+                        # Color code intervention priority
+                        try:
+                            col_letter = cell.column_letter
+                            col_name = bottom_cols[c_idx - 1] if c_idx <= len(bottom_cols) else None
+                            if col_name == 'Intervention_Priority' and value in priority_colors:
+                                cell.fill = priority_colors[value]
+                        except (AttributeError, IndexError):
+                            pass
+                
+                current_row += 1
+        
+        # Auto-adjust column widths
+        for column in ws.columns:
+            max_length = 0
+            try:
+                column_letter = column[0].column_letter
+            except AttributeError:
+                continue  # Skip merged cells
+            
+            for cell in column:
+                try:
+                    if cell.value and len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = min(max_length + 2, 50)
+            ws.column_dimensions[column_letter].width = adjusted_width
+
 
 def generate_excel_report(kpi_results: Dict[str, Any],
                           okr_results: Dict[str, Any],
@@ -1100,7 +1296,8 @@ def generate_excel_report(kpi_results: Dict[str, Any],
                           requests: pd.DataFrame,
                           config,
                           output_path: str = None,
-                          geo_results: Dict[str, Any] = None) -> None:
+                          geo_results: Dict[str, Any] = None,
+                          sdm_results: Dict[str, Any] = None) -> None:
     """
     Convenience function to generate Excel report.
     
@@ -1112,7 +1309,9 @@ def generate_excel_report(kpi_results: Dict[str, Any],
         requests: Transformed requests DataFrame
         config: Configuration object
         output_path: Path for output file
+        geo_results: Geographic analysis results (optional)
+        sdm_results: SDM analysis results (optional)
     """
     generator = ReportGenerator(config)
     generator.generate_excel_report(kpi_results, okr_results, action_triggers, 
-                                   incidents, requests, geo_results, output_path)
+                                   incidents, requests, geo_results, sdm_results, output_path)

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Simplified run.bat workflow**: Removed duplicate PM Dashboard generation. `main.py` now generates both KPI Report and PM Dashboard in a single run, eliminating the need to run `scripts\run_pm.py` separately
+- **Removed run_with_tables.bat**: Consolidated functionality into `main.py --save-tables` option
+
+### Added
+- **SDM Analysis Sheet**: Added Service Delivery Manager breakdown sheet to Excel KPI Report showing overall KPI and OKR scores per SDM
+
 ### Planned Features
 - Email report distribution
 - Automated scheduling support

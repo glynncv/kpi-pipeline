@@ -73,7 +73,7 @@ The pipeline supports multiple date formats automatically:
 - `10/17/2025 2:30 PM`
 - `17-Oct-2025 14:30`
 
-If your format isn't recognized, configure it in `config/kpi_config.yaml`:
+If your format isn't recognized, configure it in `config/kpi_itsm_config.yaml`:
 
 ```yaml
 processing:

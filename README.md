@@ -78,19 +78,47 @@ chmod +x setup.sh
    - See `data/input/README.md` for expected format
 
 6. **Run the pipeline**
+   
+   **Option 1: Using batch file (Windows)**
+   ```bash
+   run.bat              # Production data (default)
+   run.bat dev          # Development test data
+   run.bat prod         # Production data (explicit)
+   ```
+   
+   **Option 2: Using batch file with table export (Windows)**
+   ```bash
+   run_with_tables.bat          # Production data + save tables (CSV)
+   run_with_tables.bat dev      # Development data + save tables
+   run_with_tables.bat parquet  # Save tables as Parquet format
+   run_with_tables.bat json     # Save tables as JSON format
+   ```
+   
+   **Option 3: Direct Python command**
    ```bash
    python main.py
    ```
    
    This generates:
    - **KPI Report**: `data/output/KPI_Report_{env}_{timestamp}.xlsx`
+     - Includes Executive Summary, KPI Scorecard, OKR Summary, Geographic Analysis, and SDM Analysis sheets
    - **PM Dashboard**: `data/output/PM_Dashboard_{timestamp}.xlsx` (if PM data available)
+     - Includes RCA completion tracking and problem details
+   - **Output Tables** (if using `run_with_tables.bat` or `--save-tables`): `data/output/tables/*.csv`
+     - Includes normalized data tables, geographic summaries, and SDM summaries
 
 ### Advanced Usage
 
 ```bash
 # Use development environment (smaller test data)
 python main.py --env dev
+
+# Save output tables (CSV format)
+python main.py --save-tables
+
+# Save tables in different formats
+python main.py --save-tables --tables-format parquet
+python main.py --save-tables --tables-format json
 
 # Override input files
 python main.py --incidents custom_incidents.csv --requests custom_requests.csv
@@ -134,9 +162,11 @@ kpi_pipeline/
 │   ├── HANDOFF.md                # Project handoff documentation
 │   ├── GITHUB_SETUP.md           # GitHub setup instructions
 │   └── GIT_WORKFLOW.md           # Git workflow documentation
-├── main.py                       # Main execution script
+├── main.py                       # Main execution script (generates both KPI Report and PM Dashboard)
+├── run.bat                       # Windows batch file for easy execution
+├── run_with_tables.bat           # Windows batch file with table export enabled
 ├── scripts/                      # Utility scripts
-│   ├── run_pm.py                # Problem Management runner
+│   ├── run_pm.py                # Problem Management standalone runner (optional)
 │   ├── run_validation.py        # Validation runner wrapper
 │   ├── run_validation_tests.py # Comprehensive validation tests
 │   ├── run_validation_tests_standalone.py # Standalone validation tests

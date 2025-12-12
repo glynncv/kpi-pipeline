@@ -6,7 +6,7 @@
 
 **Option 1: Simple Batch File (Windows)**
 ```batch
-# Production data (default)
+# Production data (default) - generates both KPI Report and PM Dashboard
 run.bat
 
 # Development test data (fast)
@@ -14,6 +14,27 @@ run.bat dev
 
 # Production data (explicit)
 run.bat prod
+
+# Service Management KPIs only
+run.bat sm
+
+# Problem Management KPIs only (standalone)
+run.bat pm
+```
+
+**Option 1b: Batch File with Table Export (Windows)**
+```batch
+# Production data + save tables (CSV format)
+run_with_tables.bat
+
+# Development test data + save tables
+run_with_tables.bat dev
+
+# Save tables as Parquet format
+run_with_tables.bat parquet
+
+# Save tables as JSON format
+run_with_tables.bat json
 ```
 
 **Option 2: Direct Python Command**
@@ -22,12 +43,15 @@ run.bat prod
 source venv/bin/activate  # macOS/Linux
 venv\Scripts\activate     # Windows
 
-# Run pipeline
+# Run pipeline (generates both KPI Report and PM Dashboard)
 python main.py
 
 # With environment selection
 python main.py --env dev     # Development data (fast)
 python main.py --env prod    # Production data (full)
+
+# Save output tables (CSV format)
+python main.py --save-tables
 ```
 
 ### Check Output

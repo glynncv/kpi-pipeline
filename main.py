@@ -93,8 +93,128 @@ Examples:
         default='config/kpi_config.yaml',
         help='Path to KPI config file (default: config/kpi_config.yaml)'
     )
+    
+    parser.add_argument(
+        '--save-tables',
+        action='store_true',
+        help='Save normalized output tables to data/output/tables/ directory'
+    )
+    
+    parser.add_argument(
+        '--tables-format',
+        choices=['csv', 'parquet', 'json'],
+        default='csv',
+        help='Format for saved tables: csv (default), parquet, or json'
+    )
 
     return parser.parse_args()
+
+
+def save_output_tables(geo_results, sdm_results, incidents, requests, problems,
+                       kpi_results, okr_results, output_dir, table_format='csv'):
+    """
+    Save normalized output tables to files.
+    
+    Args:
+        geo_results: Geographic analysis results dictionary
+        sdm_results: SDM analysis results dictionary
+        incidents: Transformed incidents DataFrame
+        requests: Transformed requests DataFrame (or empty DataFrame)
+        problems: Transformed problems DataFrame (or None)
+        kpi_results: KPI results dictionary
+        okr_results: OKR results dictionary
+        output_dir: Base output directory
+        table_format: Format to save ('csv', 'parquet', or 'json')
+    
+    Returns:
+        List of saved file paths
+    """
+    tables_dir = Path(output_dir) / 'tables'
+    tables_dir.mkdir(parents=True, exist_ok=True)
+    
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    saved_files = []
+    
+    print(f"\nSaving output tables ({table_format} format)...")
+    
+    # Helper function to save DataFrame
+    def save_df(df, name, index=False):
+        if df is None or df.empty:
+            return None
+        
+        if table_format == 'csv':
+            filepath = tables_dir / f"{name}_{timestamp}.csv"
+            df.to_csv(filepath, index=index)
+        elif table_format == 'parquet':
+            try:
+                filepath = tables_dir / f"{name}_{timestamp}.parquet"
+                df.to_parquet(filepath, index=index)
+            except ImportError:
+                print(f"⚠ Warning: pyarrow not available, falling back to CSV for {name}")
+                filepath = tables_dir / f"{name}_{timestamp}.csv"
+                df.to_csv(filepath, index=index)
+        elif table_format == 'json':
+            filepath = tables_dir / f"{name}_{timestamp}.json"
+            df.to_json(filepath, orient='records', date_format='iso', index=index)
+        else:
+            return None
+        
+        saved_files.append(str(filepath))
+        return filepath
+    
+    # Save geographic analysis tables
+    if geo_results:
+        if not geo_results['location_summary'].empty:
+            save_df(geo_results['location_summary'], 'geographic_summary')
+        
+        if 'country_summary' in geo_results and not geo_results['country_summary'].empty:
+            save_df(geo_results['country_summary'], 'country_summary')
+        
+        if 'top_performers' in geo_results and not geo_results['top_performers'].empty:
+            save_df(geo_results['top_performers'], 'geographic_top_performers')
+        
+        if 'bottom_performers' in geo_results and not geo_results['bottom_performers'].empty:
+            save_df(geo_results['bottom_performers'], 'geographic_bottom_performers')
+    
+    # Save SDM analysis tables
+    if sdm_results and not sdm_results['sdm_summary'].empty:
+        save_df(sdm_results['sdm_summary'], 'sdm_summary')
+        
+        if 'top_performers' in sdm_results and not sdm_results['top_performers'].empty:
+            save_df(sdm_results['top_performers'], 'sdm_top_performers')
+        
+        if 'bottom_performers' in sdm_results and not sdm_results['bottom_performers'].empty:
+            save_df(sdm_results['bottom_performers'], 'sdm_bottom_performers')
+    
+    # Save normalized data tables
+    if not incidents.empty:
+        save_df(incidents, 'incidents_normalized')
+    
+    if requests is not None and not requests.empty:
+        save_df(requests, 'requests_normalized')
+    
+    if problems is not None and not problems.empty:
+        save_df(problems, 'problems_normalized')
+    
+    # Create and save KPI summary table
+    kpi_summary_data = []
+    for kpi_code, kpi_data in kpi_results.items():
+        if kpi_code == 'OVERALL':
+            continue
+        kpi_summary_data.append({
+            'KPI_Code': kpi_code,
+            'KPI_Name': kpi_data.get('KPI_Name', ''),
+            'Status': kpi_data.get('Status', ''),
+            'Adherence_Rate': kpi_data.get('Adherence_Rate', 0),
+            'Business_Impact': kpi_data.get('Business_Impact', '')
+        })
+    
+    if kpi_summary_data:
+        kpi_summary_df = pd.DataFrame(kpi_summary_data)
+        save_df(kpi_summary_df, 'kpi_summary')
+    
+    print(f"✓ Saved {len(saved_files)} table files to {tables_dir}")
+    return saved_files
 
 
 def get_data_file_paths(config, args):
@@ -169,7 +289,11 @@ def main():
         # Display environment info
         env_desc = config['data_sources']['environments'][env]['description']
         print(f"✓ Environment: {env} ({env_desc})")
-        
+
+        # Create output directory early (used by PM reports and main KPI report)
+        output_dir = "data/output"
+        os.makedirs(output_dir, exist_ok=True)
+
         # Step 2: Load Data
         print("\n[2/8] Loading data files...")
         print(f"  Incidents: {incidents_path}")
@@ -358,11 +482,7 @@ def main():
         
         # Step 7: Generate Excel Report
         print("\n[7/8] Generating Excel report...")
-        
-        # Create output directory
-        output_dir = "data/output"
-        os.makedirs(output_dir, exist_ok=True)
-        
+
         # Generate timestamped filename
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         env_suffix = f"_{env}" if env != "prod" else ""
@@ -378,6 +498,7 @@ def main():
             incidents=incidents,
             requests=requests if requests is not None else pd.DataFrame(),
             geo_results=geo_results,
+            sdm_results=sdm_results,
             config=config,
             output_path=output_file
         )
@@ -386,6 +507,25 @@ def main():
         
         if pm_report_path:
             print(f"✓ PM Dashboard generated: {pm_report_path}")
+        
+        # Step 8: Save output tables if requested
+        if args.save_tables:
+            try:
+                saved_files = save_output_tables(
+                    geo_results=geo_results,
+                    sdm_results=sdm_results,
+                    incidents=incidents,
+                    requests=requests if requests is not None else pd.DataFrame(),
+                    problems=problems,
+                    kpi_results=kpi_results,
+                    okr_results=okr_results,
+                    output_dir=output_dir,
+                    table_format=args.tables_format
+                )
+                if saved_files:
+                    print(f"✓ Output tables saved: {len(saved_files)} files")
+            except Exception as table_error:
+                print(f"⚠ Warning: Failed to save output tables: {table_error}")
         
         print("\n" + "="*70)
         print(f"✓ Pipeline completed successfully")

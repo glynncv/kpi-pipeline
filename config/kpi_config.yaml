@@ -215,14 +215,17 @@ global_status_rules:
     immediate:
       - "P1 incident count > 0"
       - "Backlog percentage > 20%"
+      - "Request aging percentage > 20%"
       - "RCA completion rate < 80%"
     urgent:
       - "P2 incident count > 10"
       - "Backlog percentage > 15%"
+      - "Request aging percentage > 15%"
       - "RCA completion rate < 85%"
     monitor:
       - "P2 incident count > 5"
       - "Backlog percentage > 10%"
+      - "Request aging percentage > 10%"
       - "FCR rate < 80%"
       - "RCA completion rate < 90%"
 
@@ -258,7 +261,7 @@ kpis:
     calculation:
       method: "servicenow_backlog"
     targets:
-      backlog_max: 0
+      backlog_max: 10
       adherence_min: 90.0
       aging_threshold_days: 10
     required_fields:
@@ -277,8 +280,8 @@ kpis:
     calculation:
       method: "request_aging"
     targets:
-      aged_max: 0
-      adherence_min: 70.0
+      aged_max: 30
+      adherence_min: 90.0
     required_fields:
       - "number"
       - "opened_at"

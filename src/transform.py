@@ -82,8 +82,19 @@ def add_request_flags(df: pd.DataFrame, config: Dict[str, Any]) -> pd.DataFrame:
     aging_threshold = config['thresholds']['aging'].get('request_aging_days', 30)
     
     # Flag: Aged Request
-    # Business rule: Open for more than threshold days
-    df['Is_Aged'] = df['Days_Open'] > aging_threshold
+    # Business rule: Requests that took more than threshold days (whether open or closed)
+    # For closed requests: use Days_To_Close (time from opened to closed)
+    # For open requests: use Days_Open (time from opened to now)
+    closed_mask = df['closed_at'].notna()
+    if 'Days_To_Close' in df.columns:
+        # Closed requests: aged if they took more than threshold days to close
+        aged_closed = closed_mask & (df['Days_To_Close'] > aging_threshold)
+        # Open requests: aged if currently open for more than threshold days
+        aged_open = (~closed_mask) & (df['Days_Open'] > aging_threshold)
+        df['Is_Aged'] = aged_closed | aged_open
+    else:
+        # Fallback: use Days_Open for all (less accurate for closed requests)
+        df['Is_Aged'] = df['Days_Open'] > aging_threshold
     
     # Flag: Closed
     df['Is_Closed'] = df['closed_at'].notna()
